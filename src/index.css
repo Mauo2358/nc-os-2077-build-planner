@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+body {
+  background-color: #07080c;
+  color: #e2e8f0;
+  font-family: 'Courier New', Courier, ui-monospace, monospace;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom Range Slider Styling */
+input[type="range"] {
+  accent-color: #fcee0a;
+}

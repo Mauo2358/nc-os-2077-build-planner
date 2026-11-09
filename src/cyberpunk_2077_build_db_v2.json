@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "version": "PATCH 2.12 / PHANTOM LIBERTY",
+    "maxLevelPL": 60,
+    "maxPointsPL": 81
+  },
+  "presets": [
+    {
+      "id": "blackwall-assassin",
+      "name": "Black Wall Assassin",
+      "archetype": "BLACKWALL GATEWAY // OVERCLOCK CALAMITY // SMART SMG",
+      "difficulty": "Disaster-Class Netrunner",
+      "summary": "A walking extinction event. Channel rogue AIs from beyond the Blackwall using the Militech Canto Mk.6 and Erebus. Activate Overclock to sacrifice your own lifeforce as raw bandwidth, watching the Blackwall Gateway quickhack autonomously leap from squad to squad in a cascading chain of neural frying while Biomonitor + Blood Pump endlessly out-heal the toll.",
+      "stats": {
+        "body": 20,
+        "reflexes": 15,
+        "tech": 20,
+        "intelligence": 20,
+        "cool": 6,
+        "relic": 9
+      },
+      "synergy": {
+        "opening": "Engage Overclock + Optical Camo and upload Cyberware Malfunction -> Synapse Burnout -> Blackwall Gateway onto the highest-threat target. The Canto's rogue AI immediately breaches the local subnet, turning the primary target into a screaming conduit.",
+        "loop": "Every time Blackwall Gateway or Synapse Burnout flatlines an enemy, Blood Daemon, Sublimation, and Axolotl refund your HP and Overclock duration. Unload Erebus dark-energy rounds into stragglers to instantly execute anyone below 33% HP with rogue AI beams.",
+        "failsafe": "20 Body (Adrenaline Rush) + Biomonitor + Blood Pump + Heal-On-Kill creates an immortal HP battery that fuels infinite Overclock RAM. Second Heart stands by as a hard reboot if you ever overdraw your lifeforce."
+      },
+      "gear": [
+        {
+          "name": "Militech Canto Mk.6",
+          "slot": "Operating System (Iconic Cyberdeck)",
+          "district": "Cynosure Facility, Dogtown",
+          "location": "Crafted from the Behavioral System Component looted on the Cynosure bunker path ('Somewhat Damaged') + decoded Cerberus AI core via 'This Corrosion'."
+        },
+        {
+          "name": "Erebus",
+          "slot": "Weapon (Iconic Power SMG)",
+          "district": "Cynosure Facility, Dogtown",
+          "location": "Crafted using the spec found in the Maintenance Room of the underground Militech Cynosure facility during 'Somewhat Damaged'. Infused with a rogue AI from beyond the Blackwall."
+        },
+        {
+          "name": "COX-2 Cybersomatic Optimizer",
+          "slot": "Frontal Cortex (Iconic)",
+          "district": "Dogtown Stadium",
+          "location": "Purchased from Dogtown Ripperdocs at Level 40+. Grants 100% Quickhack Crit Chance at the cost of -4 Max RAM, turning Blackwall & Synapse Burnout into guaranteed lethal crits."
+        },
+        {
+          "name": "Ex-Disk",
+          "slot": "Frontal Cortex",
+          "district": "Any Ripperdoc",
+          "location": "Available at all Night City & Dogtown Ripperdocs. Increases Max RAM by +6 and upload speed by +20% to offset the heavy RAM cost of Blackwall Gateway."
+        },
+        {
+          "name": "Axolotl",
+          "slot": "Frontal Cortex (Iconic)",
+          "district": "Northside, Watson / Dogtown",
+          "location": "Reward for completing all 23 of Regina Jones's gigs (or purchased in Dogtown Stadium). Instantly reduces all cyberware cooldowns on every Blackwall kill."
+        },
+        {
+          "name": "Biomonitor + Blood Pump",
+          "slot": "Circulatory System",
+          "district": "Any Ripperdoc",
+          "location": "Available at all Ripperdocs. Automatically fires Blood Pump when Overclock drains your HP below 50%, fueling Adrenaline Rush and keeping your RAM pool infinite."
+        }
+      ]
+    },
+    {
+      "id": "sandevistan-cyber-ninja",
+      "name": "Sandevistan Cyber-Ninja",
+      "archetype": "BLADES // THROWN KNIVES // TIME DILATION",
+      "difficulty": "Aggressive High-Mobility",
+      "summary": "Slow time by 85% with the Apogee Sandevistan, air-dash across rooftops, deflect bullets back at snipers, and chain instant katana finishers and knife resets.",
+      "stats": {
+        "body": 18,
+        "reflexes": 20,
+        "tech": 20,
+        "intelligence": 3,
+        "cool": 20,
+        "relic": 9
+      },
+      "gear": [
+        {
+          "name": "Byakko",
+          "slot": "Weapon (Iconic Katana)",
+          "district": "Japantown, Westbrook",
+          "location": "Reward from Wakako Okada after completing all 8 of her Westbrook gigs. Grants rapid leaping combo slashes after a kill."
+        },
+        {
+          "name": "Errata",
+          "slot": "Weapon (Iconic Thermal Katana)",
+          "district": "Arroyo, Santo Domingo",
+          "location": "Electric Corp Power Station, Level -2 — Inside the glowing furnace during 'Disasterpiece'. Guaranteed Crits against burning targets."
+        },
+        {
+          "name": "Nehan + Satori",
+          "slot": "Weapon (Iconic Knife & Katana)",
+          "district": "Arasaka Waterfront, Watson",
+          "location": "Konpeki Plaza Penthouse during 'The Heist' — Loot Nehan from Saburo Arasaka and Satori from the rooftop AV. Synergizes to trigger Hemorrhaging."
+        },
+        {
+          "name": "Militech 'Apogee' Sandevistan",
+          "slot": "Operating System",
+          "district": "Any Ripperdoc (Lvl 40+)",
+          "location": "Available at all Night City & Dogtown Ripperdocs at Level 40 (or free inside Dogtown supply drops). Slows time by 85% and extends duration on kills."
+        },
+        {
+          "name": "Axolotl",
+          "slot": "Frontal Cortex (Iconic)",
+          "district": "Northside, Watson",
+          "location": "Reward for completing all 23 of Regina Jones's gigs (or purchased from Dogtown Stadium Black Market vendor). Instantly reduces all cyberware cooldowns on kill."
+        }
+      ]
+    },
+    {
+      "id": "overclock-contagion-netrunner",
+      "name": "Overclock Contagion Netrunner",
+      "archetype": "QUICKHACKS // SMART SMGS // MONOWIRE",
+      "difficulty": "Tactical God-Mode",
+      "summary": "Detonate entire squads through walls by chaining Tier 5 Contagion with Overheat and Prototype: Shingen Mark V thermal rounds while Overclock converts HP into infinite RAM.",
+      "stats": {
+        "body": 20,
+        "reflexes": 15,
+        "tech": 20,
+        "intelligence": 20,
+        "cool": 6,
+        "relic": 9
+      },
+      "gear": [
+        {
+          "name": "Tetratronic Rippler Mk.5",
+          "slot": "Operating System (Cyberdeck)",
+          "district": "Any Ripperdoc",
+          "location": "Grants +40% damage to combat quickhacks when immediately followed by a non-combat quickhack in the queue."
+        },
+        {
+          "name": "Yinglong (Crafting Spec)",
+          "slot": "Weapon (Iconic Smart SMG)",
+          "district": "Wellsprings, Heywood",
+          "location": "Dropped by Denzel Cryer during the Suspected Organized Crime Activity in southern Wellsprings. Triggers EMP bursts on hit."
+        }
+      ]
+    },
+    {
+      "id": "chrome-berserker-solo",
+      "name": "Chrome Berserker Solo",
+      "archetype": "SHOTGUNS // GORILLA ARMS // PYROMANIA",
+      "difficulty": "Unkillable Tank",
+      "summary": "Shrug off fatal damage with Biodyne Berserk and Adrenaline Rush overshields, obliterate bosses at point-blank range with Iconic double-barrel shotguns, and hurl enemies like ragdolls.",
+      "stats": {
+        "body": 20,
+        "reflexes": 20,
+        "tech": 20,
+        "intelligence": 3,
+        "cool": 18,
+        "relic": 9
+      },
+      "gear": [
+        {
+          "name": "Guts",
+          "slot": "Weapon (Iconic Power Shotgun)",
+          "district": "Corpo Plaza, City Center",
+          "location": "Memorial Park — Hidden in the bushes underneath the elevated glass walkway on the west side of the ring (near the three monks). Massive pellet spread and recoil."
+        },
+        {
+          "name": "Order",
+          "slot": "Weapon (Iconic Tech Shotgun)",
+          "district": "Dogtown Stadium",
+          "location": "Purchased from the Black Market vendor inside EBM Petrochem Stadium. Vaporizes everything in front of you when charged to 66%."
+        }
+      ]
+    },
+    {
+      "id": "phantom-deadeye-gunslinger",
+      "name": "Phantom Deadeye Gunslinger",
+      "archetype": "STEALTH PISTOLS // TECH SNIPERS // OPTICAL CAMO",
+      "difficulty": "Precision Assassin",
+      "summary": "Chain guaranteed 300% headshot crits with Johnny's Malorian or Alex's suppressed pistol, pierce concrete walls with Tech Snipers, and vanish instantly with Relic Emergency Cloaking.",
+      "stats": {
+        "body": 18,
+        "reflexes": 20,
+        "tech": 20,
+        "intelligence": 3,
+        "cool": 20,
+        "relic": 9
+      },
+      "gear": [
+        {
+          "name": "Her Majesty",
+          "slot": "Weapon (Iconic Power Pistol)",
+          "district": "Dogtown",
+          "location": "Given automatically by Alex in the bunker during the Phantom Liberty main job 'Get It Together'. Grants guaranteed critical headshots and zero spread while Optical Camo is active."
+        },
+        {
+          "name": "Malorian Arms 3516",
+          "slot": "Weapon (Iconic Power Pistol)",
+          "district": "Northside, Watson",
+          "location": "Looted from Grayson on the Ebunike cargo ship during 'Chippin' In'. Quick melee unleashes a blast of flamethrower fire."
+        }
+      ]
+    }
+  ]
+}

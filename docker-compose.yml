@@ -1,0 +1,16 @@
+services:
+  nc-os-planner:
+    build: .
+    image: nc-os-2077-build-planner:latest
+    container_name: nc-os-planner
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    # Host port is a placeholder - check IPAM/port inventory before binding.
+    # If your reverse proxy shares a Docker network with this container,
+    # drop "ports:" entirely and proxy to nc-os-planner:8080 instead.
+    ports:
+      - "${PLANNER_PORT:-8080}:8080"
