@@ -1,5 +1,7 @@
 # ---- Build stage ----
-FROM node:22-alpine AS build
+# Build static assets natively on the runner; dist/ is platform-independent,
+# so only the nginx stage below needs to be multi-arch (avoids slow QEMU npm/vite).
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
