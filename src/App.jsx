@@ -1,44 +1,38 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import buildDb from './cyberpunk_2077_build_db_v2.json';
 
-const PERK_TREES = {
-  body: [
-    { tier: 'LV 4 // NOVICE', pts: '3/5 PTS', name: 'PAINJUGGLER / COMEBACK KID', desc: '+10% Health Regen in combat. Adrenaline Rush unlocked at 15 Body.' },
-    { tier: 'LV 9 // ADEPT', pts: '5/5 PTS', name: 'DIE! DIE! DIE! / LIKE A FEATHER', desc: 'Increased fire rate and tighter spread as Stamina decreases; no movement penalty with Shotguns/LMGs.' },
-    { tier: 'LV 15 // EXPERT', pts: '7/7 PTS', name: 'ADRENALINE RUSH / BLOOD DAEMON', desc: '+35% Max HP as Adrenaline Shield; +40 HP restored per enemy affected by your active Quickhacks on kill.' },
-    { tier: 'LV 20 // MASTER', pts: '3/3 PTS', name: 'RIP AND TEAR / PAIN TO GAIN', desc: '+20% Instant Health Item recharge on every kill during Adrenaline Rush, creating infinite Overclock fuel.' }
-  ],
-  reflexes: [
-    { tier: 'LV 4 // NOVICE', pts: '3/5 PTS', name: 'SLIPPERY / MULTITASKER', desc: 'Harder for enemies to hit you while moving fast; shoot while sprinting, sliding, and vaulting.' },
-    { tier: 'LV 9 // ADEPT', pts: '5/5 PTS', name: 'DASH / LEAD AND STEEL', desc: 'Replace dodge with high-speed Dash. Block incoming bullets with Blades (+100% mitigation).' },
-    { tier: 'LV 15 // EXPERT', pts: '7/7 PTS', name: 'AIR DASH / AERODYNAMIC', desc: 'Dash mid-air for superior mobility and +30% Mitigation Strength while airborne.' },
-    { tier: 'LV 20 // MASTER', pts: '3/3 PTS', name: 'SLAUGHTERHOUSE / SUBMACHINE FUN', desc: 'Instant SMG reload & +22% fire rate when swapping SMGs; Air Dashes restore +25 Stamina.' }
-  ],
-  tech: [
-    { tier: 'LV 4 // NOVICE', pts: '3/5 PTS', name: 'GLUTTON FOR WAR / FIRST AID', desc: '+5% instant cooldown reduction on Health Items & Grenades per kill; +15% faster Blood Pump recharge.' },
-    { tier: 'LV 9 // ADEPT', pts: '5/5 PTS', name: 'ALL THINGS CYBER / RENAISSANCE PUNK', desc: '+10% all Cyberware stat modifiers; +4 Cyberware Capacity for each Attribute at 9 or higher.' },
-    { tier: 'LV 15 // EXPERT', pts: '7/7 PTS', name: 'LICENSE TO CHROME / CYBORG', desc: '+40 Armor & unlocks 3rd Skeleton slot; -15% cooldown on all Cyberware when all available slots are filled.' },
-    { tier: 'LV 20 // MASTER', pts: '3/3 PTS', name: 'EDGERUNNER / TICKING TIME BOMB', desc: 'Exceed Cyberware Capacity by up to 50 pts; 0.1% chance per point over to trigger Fury (+10% Dmg, +30% Crit, +50% Crit Dmg) accompanied by psychopathic laughter.' }
-  ],
-  intelligence: [
-    { tier: 'LV 4 // NOVICE', pts: '3/5 PTS', name: 'EYE IN THE SKY / PROXIMATE PROP', desc: 'Reduced RAM cost the closer you are to the target; +35% RAM recovery rate.' },
-    { tier: 'LV 9 // ADEPT', pts: '5/5 PTS', name: 'EMBEDDED EXPLOIT / ICEPICK', desc: '+60% Quickhack damage to enemies affected by Control/Covert hacks; -1 RAM cost for Combat/Ultimate hacks.' },
-    { tier: 'LV 15 // EXPERT', pts: '7/7 PTS', name: 'OVERCLOCK / SUBLIMATION', desc: 'Spend HP instead of RAM to upload Blackwall Gateway; all RAM recovery effects also regenerate HP during Overclock.' },
-    { tier: 'LV 20 // MASTER', pts: '3/3 PTS', name: 'SPILLOVER / QUEUE HACK_ROOT', desc: '-1 RAM cost for the 4th hack in queue (Blackwall Gateway) & +50% chance for Quickhacks in Overclock to spread.' }
-  ],
-  cool: [
-    { tier: 'LV 4 // NOVICE', pts: '3/5 PTS', name: 'FELINE FOOTWORK / KILLER INSTINCT', desc: '+15% Movement speed & +15% Mitigation Chance while crouched; +25% damage with silenced weapons outside combat.' },
-    { tier: 'LV 9 // ADEPT', pts: '5/5 PTS', name: 'FOCUS / SCORPION STING', desc: 'No Stamina cost while aiming Pistols/Snipers; Critical Hits with Thrown Weapons apply Poison and Blind.' },
-    { tier: 'LV 15 // EXPERT', pts: '7/7 PTS', name: 'DEADEYE / JUGGLER', desc: '+20% Headshot & Weakspot damage and zero bullet spread; killing an enemy with a Thrown Knife Headshot/Crit instantly resets all Knife cooldowns.' },
-    { tier: 'LV 20 // MASTER', pts: '3/3 PTS', name: 'NERVES OF TUNGSTEN-STEEL / STYLE OVER SUBSTANCE', desc: 'Guaranteed Critical Hits on Headshots/Weakspots during Deadeye; Guaranteed Crits with Thrown Weapons while crouch-sprinting or dodging.' }
-  ]
+// --- Game rules (DB.meta) — single source of truth for caps and thresholds ---
+const META = buildDb.meta;
+const MIN_ATTR = META.minAttr ?? 3;
+const MAX_ATTR = META.maxAttr ?? 20;
+const MAX_POINTS = META.maxPointsPL ?? 81;
+const MAX_LEVEL = META.maxLevelPL ?? 60;
+const MAX_RELIC = META.maxRelicPL ?? 9;
+const THRESHOLDS = META.thresholds ?? [4, 9, 15, 20];
+const TIER_LABELS = { [THRESHOLDS[0]]: 'NOVICE', [THRESHOLDS[1]]: 'PHENOM', [THRESHOLDS[2]]: 'LEGEND', [THRESHOLDS[3]]: 'MASTER' };
+// Lv 1 = every attribute at its minimum + starting points; +1 point per level after that.
+const pointsAtLevel = (lvl) => MIN_ATTR * 5 + (META.startingPoints ?? 7) + (lvl - 1);
+
+// --- Attributes & perk milestones (DB.attributes) ---
+const ATTRIBUTES = buildDb.attributes ?? {};
+const ATTR_KEYS = ['body', 'reflexes', 'tech', 'intelligence', 'cool'];
+const ATTR_COLORS = {
+  body: 'text-[#ff2a6d]',
+  reflexes: 'text-[#00f0ff]',
+  tech: 'text-[#fcee0a]',
+  intelligence: 'text-[#a855f7]',
+  cool: 'text-[#38bdf8]'
 };
+const attrName = (key) => ATTRIBUTES[key]?.name ?? key;
+
+// --- Dogtown exclusives (DB.dogtown_exclusives) ---
+const DOGTOWN_EXCLUSIVES = buildDb.dogtown_exclusives ?? [];
 
 const RELIC_PERKS = [
-  { id: 'vuln', name: 'VULNERABILITY ANALYTICS', cost: '3 PTS', desc: 'During combat, highlights Weakspots on enemy armor. Hitting Weakspots grants +100% Crit Chance, +25% Armor Penetration, and triggers an explosive EMP blast when destroyed.' },
-  { id: 'jailbreak', name: 'JAILBREAK // DATA TUNNELING', cost: '3 PTS', desc: 'Unlocks Control Quickhack slot on Monowire. Hitting an enemy infected with a Monowire hack spreads that hack to all nearby targets for 0 RAM.' },
-  { id: 'camo', name: 'EMERGENCY CLOAKING', cost: '3 PTS', desc: 'Activating Optical Camo during combat automatically causes enemies to lose track of you, letting you drop out of combat or channel Blackwall Gateway safely.' },
-  { id: 'sensory', name: 'SENSORY PROTOCOL', cost: '3 PTS', desc: 'When detected while crouched, time slows down for 3.5s, allowing you to dash to cover or upload a lethal queue before alerting the squad.' }
+  { id: 'vuln', name: 'VULNERABILITY ANALYTICS', cost: 3, desc: 'During combat, highlights Weakspots on enemy armor. Hitting Weakspots grants +100% Crit Chance, +25% Armor Penetration, and triggers an explosive EMP blast when destroyed.' },
+  { id: 'jailbreak', name: 'JAILBREAK // DATA TUNNELING', cost: 3, desc: 'Unlocks Control Quickhack slot on Monowire. Hitting an enemy infected with a Monowire hack spreads that hack to all nearby targets for 0 RAM.' },
+  { id: 'camo', name: 'EMERGENCY CLOAKING', cost: 3, desc: 'Activating Optical Camo during combat automatically causes enemies to lose track of you, letting you drop out of combat or channel Blackwall Gateway safely.' },
+  { id: 'sensory', name: 'SENSORY PROTOCOL', cost: 3, desc: 'When detected while crouched, time slows down for 3.5s, allowing you to dash to cover or upload a lethal queue before alerting the squad.' }
 ];
 
 const SLOT_SUGGESTIONS = [
@@ -175,13 +169,13 @@ export default function App() {
     return inName || inArch || inDiff || inSum || inGear;
   });
 
-  const maxTotalPoints = 15 + (charLevel - 1) + 7; // 81 at Lv 60
+  const maxTotalPoints = pointsAtLevel(charLevel); // 81 at Lv 60
   const spentPoints = Object.values(attributes).reduce((sum, v) => sum + v, 0);
 
   const adjustStat = (stat, delta) => {
     const cur = attributes[stat];
     const next = cur + delta;
-    if (next >= 3 && next <= 20) {
+    if (next >= MIN_ATTR && next <= MAX_ATTR) {
       if (delta > 0 && spentPoints >= maxTotalPoints) return;
       setAttributes(prev => ({ ...prev, [stat]: next }));
     }
@@ -283,7 +277,7 @@ export default function App() {
     const cur = builderForm.stats[stat];
     const next = cur + delta;
     if (stat === 'relic') {
-      if (next >= 0 && next <= 9) {
+      if (next >= 0 && next <= MAX_RELIC) {
         setBuilderForm(prev => ({ ...prev, stats: { ...prev.stats, relic: next } }));
       }
       return;
@@ -295,8 +289,8 @@ export default function App() {
       builderForm.stats.intelligence +
       builderForm.stats.cool;
 
-    if (next >= 3 && next <= 20) {
-      if (delta > 0 && currentTotal >= 81) return;
+    if (next >= MIN_ATTR && next <= MAX_ATTR) {
+      if (delta > 0 && currentTotal >= MAX_POINTS) return;
       setBuilderForm(prev => ({
         ...prev,
         stats: { ...prev.stats, [stat]: next }
@@ -474,7 +468,15 @@ export default function App() {
     setLootedGear(prev => ({ ...prev, [itemName]: !prev[itemName] }));
   };
 
+  // Relic points spent on unlocked perks; can never exceed the build's Relic points (max MAX_RELIC).
+  const relicSpent = RELIC_PERKS.filter(r => unlockedRelics[r.id]).reduce((s, r) => s + r.cost, 0);
+
   const toggleRelic = (id) => {
+    const perk = RELIC_PERKS.find(r => r.id === id);
+    if (!unlockedRelics[id] && relicSpent + perk.cost > relicPoints) {
+      showToast(`RELIC CAP // ${relicSpent}/${relicPoints} PTS SPENT. UNLOCK REQUIRES ${perk.cost} MORE`);
+      return;
+    }
     setUnlockedRelics(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
@@ -528,7 +530,7 @@ export default function App() {
               2077 STAT &amp; GEAR PLANNER
             </h1>
             <p className="text-[11px] text-slate-400 uppercase tracking-widest mt-0.5">
-              MAX LEVEL 60 // 81 ATTRIBUTE POINTS // 80 PERK POINTS // 9 RELIC POINTS
+              MAX LEVEL {MAX_LEVEL} // {MAX_POINTS} ATTRIBUTE POINTS // 80 PERK POINTS // {MAX_RELIC} RELIC POINTS
             </p>
           </div>
 
@@ -696,9 +698,9 @@ export default function App() {
                   &gt; TARGET ATTRIBUTE &amp; RELIC ALLOCATION
                 </span>
                 <span className={`text-xs font-black uppercase ${
-                  builderSpentPoints > 81 ? 'text-[#ff2a6d]' : 'text-[#fcee0a]'
+                  builderSpentPoints > MAX_POINTS ? 'text-[#ff2a6d]' : 'text-[#fcee0a]'
                 }`}>
-                  SPENT: {builderSpentPoints} / 81 PTS ({81 - builderSpentPoints} REMAINING)
+                  SPENT: {builderSpentPoints} / {MAX_POINTS} PTS ({MAX_POINTS - builderSpentPoints} REMAINING)
                 </span>
               </div>
 
@@ -709,7 +711,7 @@ export default function App() {
                   { key: 'tech', label: 'TECH ABILITY', color: 'text-[#fcee0a]' },
                   { key: 'intelligence', label: 'INTELLIGENCE', color: 'text-[#a855f7]' },
                   { key: 'cool', label: 'COOL', color: 'text-[#38bdf8]' },
-                  { key: 'relic', label: 'RELIC (MAX 9)', color: 'text-[#fcee0a]' }
+                  { key: 'relic', label: `RELIC (MAX ${MAX_RELIC})`, color: 'text-[#fcee0a]' }
                 ].map(stat => (
                   <div key={stat.key} className="border border-slate-800 bg-[#0d1017] p-2.5 text-center">
                     <div className={`text-[10px] font-black uppercase mb-1 ${stat.color}`}>
@@ -1037,7 +1039,7 @@ export default function App() {
           {[
             { id: 'attributes', label: `01 // ATTRIBUTES & PERKS` },
             { id: 'gear', label: `02 // ICONIC GEAR (${lootedCount}/${activePreset?.gear.length || 0})` },
-            { id: 'relic', label: `03 // RELIC TREE (${relicPoints}/9)` },
+            { id: 'relic', label: `03 // RELIC TREE (${relicSpent}/${relicPoints})` },
             { id: 'synergy', label: `04 // SYNERGY & BREAKDOWNS` },
             { id: 'roadmap', label: `05 // LV. 60 LEVELING ROADMAP` },
             { id: 'skills', label: `06 // SKILL TRACKS (1-60)` },
@@ -1063,54 +1065,74 @@ export default function App() {
             TAB 1: ATTRIBUTES & PERKS
         ========================================================= */}
         {activeTab === 'attributes' && (
-          <div>
+          <div className="space-y-5">
+            {/* Attribute priority (DB preset.priority) */}
+            {activePreset?.priority?.length > 0 && (
+              <div className="border border-slate-800 bg-[#0e1118] p-3 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] text-[#00f0ff] uppercase tracking-wider font-bold mr-1">
+                  &gt; ATTRIBUTE PRIORITY:
+                </span>
+                {activePreset.priority.map((key, i) => (
+                  <span key={key} className="flex items-center gap-2">
+                    <span className={`text-xs font-black uppercase px-2 py-0.5 border border-slate-700 bg-black ${ATTR_COLORS[key] ?? 'text-white'}`}>
+                      {i + 1}. {attrName(key)}
+                    </span>
+                    {i < activePreset.priority.length - 1 && <span className="text-slate-600">→</span>}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Attribute columns + perk milestones (DB.attributes) */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              {[
-                { key: 'body', label: 'BODY', color: 'text-[#ff2a6d]', sub: '+2 HP per pt // Blood Daemon' },
-                { key: 'reflexes', label: 'REFLEXES', color: 'text-[#00f0ff]', sub: '+0.5% Crit // Air Dash' },
-                { key: 'tech', label: 'TECHNICAL ABILITY', color: 'text-[#fcee0a]', sub: '+2 Armor // Edgerunner' },
-                { key: 'intelligence', label: 'INTELLIGENCE', color: 'text-[#a855f7]', sub: '+1 RAM per 4 pts // Overclock' },
-                { key: 'cool', label: 'COOL', color: 'text-[#38bdf8]', sub: '+1.25% Crit Dmg // Stealth' }
-              ].map(col => {
-                const val = attributes[col.key];
+              {ATTR_KEYS.map(key => {
+                const attr = ATTRIBUTES[key];
+                const color = ATTR_COLORS[key];
+                const val = attributes[key];
                 return (
-                  <div key={col.key} className="border border-slate-800 bg-[#0d1017] flex flex-col">
+                  <div key={key} className="border border-slate-800 bg-[#0d1017] flex flex-col">
                     <div className="p-3 border-b border-slate-800 bg-[#090b10]">
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-xs font-black uppercase tracking-wider ${col.color}`}>
-                          {col.label}
+                        <span className={`text-xs font-black uppercase tracking-wider ${color}`}>
+                          {attr?.name ?? key}
                         </span>
-                        <span className="text-[10px] text-slate-500">MAX 20</span>
+                        <span className="text-[10px] text-slate-500">MAX {MAX_ATTR}</span>
                       </div>
                       <div className="flex items-center justify-between my-2">
                         <button
-                          onClick={() => adjustStat(col.key, -1)}
+                          onClick={() => adjustStat(key, -1)}
                           className="w-7 h-7 bg-slate-900 border border-slate-700 hover:border-[#fcee0a] text-white font-bold text-sm cursor-pointer"
                         >
                           -
                         </button>
-                        <span className={`text-3xl font-black ${col.color}`}>
+                        <span className={`text-3xl font-black ${color}`}>
                           {val}
                         </span>
                         <button
-                          onClick={() => adjustStat(col.key, 1)}
+                          onClick={() => adjustStat(key, 1)}
                           className="w-7 h-7 bg-slate-900 border border-slate-700 hover:border-[#fcee0a] text-white font-bold text-sm cursor-pointer"
                         >
                           +
                         </button>
                       </div>
-                      <div className="text-[10px] text-slate-400 truncate">
-                        {col.sub}
-                      </div>
+                      {attr && (
+                        <>
+                          <div className="text-[10px] text-slate-400 leading-snug" title={attr.bonus}>
+                            {attr.bonus}
+                          </div>
+                          <div className="text-[10px] text-[#00f0ff]/80 uppercase mt-1 leading-snug">
+                            {attr.weapons.join(' // ')}
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <div className="p-2.5 space-y-2.5 flex-1">
-                      {PERK_TREES[col.key].map((perk, i) => {
-                        const reqLv = i === 0 ? 4 : i === 1 ? 9 : i === 2 ? 15 : 20;
-                        const unlocked = val >= reqLv;
+                      {(attr?.perks ?? []).map(perk => {
+                        const unlocked = val >= perk.tier;
                         return (
                           <div
-                            key={i}
+                            key={perk.tier}
                             className={`p-2.5 border text-left transition ${
                               unlocked
                                 ? 'border-[#00f0ff]/40 bg-[#00f0ff]/5'
@@ -1119,9 +1141,11 @@ export default function App() {
                           >
                             <div className="flex justify-between items-center text-[10px] mb-1">
                               <span className={unlocked ? 'text-[#fcee0a] font-bold' : 'text-slate-500'}>
-                                {perk.tier}
+                                LV {perk.tier} // {TIER_LABELS[perk.tier] ?? 'TIER'}
                               </span>
-                              <span className="text-[#00f0ff] font-bold">{perk.pts}</span>
+                              <span className={unlocked ? 'text-[#00f0ff] font-bold' : 'text-slate-600'}>
+                                {unlocked ? 'ONLINE' : 'LOCKED'}
+                              </span>
                             </div>
                             <div className="text-xs font-bold text-white uppercase mb-1">
                               {perk.name}
@@ -1132,10 +1156,66 @@ export default function App() {
                           </div>
                         );
                       })}
+                      {!attr && (
+                        <div className="text-[10px] text-[#ff2a6d] uppercase">
+                          DB ERROR // no "attributes.{key}" entry
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
+            </div>
+
+            {/* Recommended perk unlock order (DB preset.perkPath) */}
+            <div className="border border-slate-800 bg-[#0e1118] p-4">
+              {activePreset?.perkPath?.length > 0 ? (
+                <>
+                  <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
+                    <span className="text-xs font-black text-[#00f0ff] uppercase tracking-wider">
+                      &gt; RECOMMENDED PERK UNLOCK ORDER
+                    </span>
+                    <span className="text-xs font-bold text-[#fcee0a]">
+                      REACHABLE WITH CURRENT ATTRIBUTES: {activePreset.perkPath.filter(p => attributes[p.attr] >= p.tier).length} / {activePreset.perkPath.length}
+                    </span>
+                  </div>
+                  <ol className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {activePreset.perkPath.map((step, i) => {
+                      const reachable = attributes[step.attr] >= step.tier;
+                      return (
+                        <li
+                          key={`${step.attr}-${step.perk}-${i}`}
+                          className={`flex gap-3 p-2.5 border ${
+                            reachable ? 'border-[#00f0ff]/30 bg-[#00f0ff]/5' : 'border-slate-800 bg-black/30 opacity-60'
+                          }`}
+                        >
+                          <span className="text-sm font-black text-[#fcee0a] w-6 shrink-0 text-right">
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-x-2 text-xs">
+                              <span className="font-bold text-white uppercase">{step.perk}</span>
+                              <span className={`text-[10px] uppercase font-bold ${ATTR_COLORS[step.attr] ?? 'text-slate-400'}`}>
+                                {attrName(step.attr)} {step.tier}
+                              </span>
+                              {!reachable && (
+                                <span className="text-[10px] text-[#ff2a6d] uppercase">
+                                  NEEDS {step.tier - attributes[step.attr]} MORE
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-400 leading-snug mt-0.5">{step.why}</p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </>
+              ) : (
+                <div className="text-xs text-slate-400 uppercase tracking-wider">
+                  &gt; NO PERK PATH DEFINED FOR THIS BUILD. ADD A "perkPath" ARRAY TO THE PRESET IN THE BUILD DB.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1215,6 +1295,60 @@ export default function App() {
                 })}
               </div>
             )}
+
+            {/* Dogtown exclusives (DB.dogtown_exclusives) — shared across all builds */}
+            {DOGTOWN_EXCLUSIVES.length > 0 && (
+              <div className="mt-6">
+                <div className="flex flex-wrap justify-between items-center mb-3 gap-2 border-t border-slate-800 pt-4">
+                  <span className="text-xs text-[#ff2a6d] uppercase tracking-wider font-bold">
+                    &gt; PHANTOM LIBERTY // DOGTOWN EXCLUSIVES (ANY BUILD)
+                  </span>
+                  <span className="text-xs text-[#fcee0a] font-bold">
+                    ACQUIRED: {DOGTOWN_EXCLUSIVES.filter(d => lootedGear[d.name]).length} / {DOGTOWN_EXCLUSIVES.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {DOGTOWN_EXCLUSIVES.map(item => {
+                    const isChecked = !!lootedGear[item.name];
+                    return (
+                      <div
+                        key={item.name}
+                        onClick={() => toggleLooted(item.name)}
+                        className={`p-4 border transition cursor-pointer ${
+                          isChecked
+                            ? 'border-emerald-500/60 bg-emerald-950/15'
+                            : 'border-[#ff2a6d]/30 bg-[#120d16] hover:border-[#ff2a6d]/70'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-4 h-4 border flex items-center justify-center text-xs font-bold ${
+                              isChecked ? 'border-emerald-400 bg-emerald-500 text-black' : 'border-slate-600'
+                            }`}>
+                              {isChecked ? '✓' : ''}
+                            </div>
+                            <h4 className={`font-black text-sm uppercase tracking-wider ${
+                              isChecked ? 'line-through text-emerald-400' : 'text-[#fcee0a]'
+                            }`}>
+                              {item.name}
+                            </h4>
+                          </div>
+                          <span className="text-[10px] bg-black border border-slate-700 px-2 py-0.5 text-[#00f0ff] uppercase tracking-wider text-right">
+                            {item.slot}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-[#ff2a6d] font-bold uppercase tracking-wider mb-1.5">
+                          SOURCE // {item.source}
+                        </div>
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          {item.location}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1223,8 +1357,13 @@ export default function App() {
         ========================================================= */}
         {activeTab === 'relic' && (
           <div>
-            <div className="mb-3 text-xs text-[#00f0ff] uppercase tracking-wider font-bold">
-              &gt; SONGBIRD MILITECH RELIC TERMINAL // DOGTOWN MILITECH DATA TERMINALS (9 PTS MAX)
+            <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
+              <span className="text-xs text-[#00f0ff] uppercase tracking-wider font-bold">
+                &gt; SONGBIRD MILITECH RELIC TERMINAL // DOGTOWN MILITECH DATA TERMINALS ({MAX_RELIC} PTS MAX)
+              </span>
+              <span className={`text-xs font-bold ${relicSpent > relicPoints ? 'text-[#ff2a6d]' : 'text-[#fcee0a]'}`}>
+                SPENT: {relicSpent} / {relicPoints} PTS
+              </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {RELIC_PERKS.map(relic => {
@@ -1244,7 +1383,7 @@ export default function App() {
                         {relic.name}
                       </span>
                       <span className="text-xs font-bold px-2 py-0.5 bg-black border border-[#fcee0a]/50 text-[#00f0ff]">
-                        {relic.cost}
+                        {relic.cost} PTS
                       </span>
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">
@@ -1359,7 +1498,7 @@ export default function App() {
                 </div>
                 {SKILL_TRACKS.map(track => {
                   const lvl = skills[track.id] || 1;
-                  const attrName = buildDb.attributes?.[track.attribute]?.name ?? track.attribute;
+                  const linkedAttr = attrName(track.attribute);
                   return (
                     <div key={track.id} className="border border-slate-800 bg-[#0e1118] p-4">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
@@ -1368,7 +1507,7 @@ export default function App() {
                             {track.name}
                           </span>
                           <span className="text-xs text-[#00f0ff] ml-2 uppercase">
-                            // LINKED: {attrName}
+                            // LINKED: {linkedAttr}
                           </span>
                           <p className="text-xs text-slate-400 mt-0.5">{track.desc}</p>
                         </div>
