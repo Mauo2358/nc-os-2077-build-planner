@@ -36,16 +36,35 @@ Requires Node.js 20.19+.
 │   ├── main.jsx
 │   ├── App.jsx
 │   ├── index.css
-│   └── cyberpunk_2077_build_db_v2.json
+│   └── cyberpunk_2077_build_db_v2.json   # build DB: single source of truth
+├── schema/
+│   ├── schema.ts         # zod schema for the build DB
+│   ├── types.ts
+│   └── validate.ts       # npm run validate:db
 ├── Dockerfile            # multi-stage: node build -> unprivileged nginx
 ├── nginx.conf            # SPA fallback, asset caching, security headers, /healthz
 ├── docker-compose.yml
-└── .github/workflows/ci.yml
+└── .github/workflows/
+    ├── ci.yml            # validate DB, lint, build, Docker build
+    └── docker-publish.yml  # publish image to GHCR
 ```
 
 ## Self-hosting
 
-The app is fully static once built, so any web server works. The included container serves it with unprivileged nginx on port **8080** inside the container.
+The app is fully static once built, so any web server works. The container serves it with unprivileged nginx on port **8080** inside the container.
+
+### Quick start: prebuilt image
+
+A multi-arch image (amd64 + arm64) is published to GitHub Container Registry on every push to `main`:
+
+```bash
+docker run -d --name nc-os-planner --restart unless-stopped \
+  -p 8080:8080 ghcr.io/mauo2358/nc-os-2077-build-planner:latest
+```
+
+Then open `http://<docker-host>:8080`. Pin a specific build with a `sha-<commit>` tag instead of `latest`. With Compose, swap `build: .` for `image: ghcr.io/mauo2358/nc-os-2077-build-planner:latest` in `docker-compose.yml`.
+
+### Build it yourself
 
 ```bash
 # Build and run
@@ -77,6 +96,15 @@ npm ci && npm run build
 
 Custom builds are stored in the visitor's browser (`localStorage` key `nc_os_custom_presets`). Nothing is sent to a server.
 
+## Contributing
+
+Forks and pull requests are welcome.
+
+- **The build DB is the source of truth.** Perks, attribute bonuses, skill tracks, cyberware capacity, presets and Dogtown exclusives all live in `src/cyberpunk_2077_build_db_v2.json`. The UI reads from it, so most content fixes are JSON-only.
+- **Validate before you push.** `npm run validate:db` checks the DB against the zod schema in `schema/schema.ts`. CI runs the same check, plus lint and build, on every push and pull request.
+- **Adding a field to the DB?** Update `schema/schema.ts` and `schema/types.ts` in the same change.
+- **Game rules:** Patch 2.1+ / Phantom Liberty only (Lv. 60 cap, 81 attribute points, attributes 3-20, perk tiers at 4/9/15/20, max 9 Relic points). Please don't add pre-2.0 perks.
+
 ## License
 
-MIT License
+Code is licensed under the MIT License; see [LICENSE](LICENSE). Cyberpunk 2077 names, terms and related content are the property of CD PROJEKT S.A. and are not covered by this license.
