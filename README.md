@@ -79,4 +79,4 @@ Custom builds are stored in the visitor's browser (`localStorage` key `nc_os_cus
 
 ## License
 
-TBD
+MIT License
