@@ -1,201 +1,382 @@
 {
   "meta": {
-    "version": "PATCH 2.12 / PHANTOM LIBERTY",
+    "version": "Patch 2.12 / Phantom Liberty",
     "maxLevelPL": 60,
-    "maxPointsPL": 81
+    "maxPointsPL": 81,
+    "maxLevelBase": 50,
+    "maxPointsBase": 71,
+    "maxRelicPL": 9,
+    "minAttr": 3,
+    "maxAttr": 20,
+    "startingPoints": 7,
+    "startingMaxAttr": 6,
+    "thresholds": [4, 9, 15, 20]
+  },
+  "attributes": {
+    "body": {
+      "name": "Body",
+      "bonus": "+2 Max Health per point",
+      "weapons": ["Shotguns", "Light Machine Guns", "Blunt Weapons"],
+      "perks": [
+        { "tier": 4, "name": "Painkiller", "desc": "Unlocks slow combat health regen." },
+        { "tier": 9, "name": "Die! Die! Die!", "desc": "Increases fire rate and crit chance with Shotguns/LMGs as stamina drops." },
+        { "tier": 15, "name": "Adrenaline Rush", "desc": "Grants temporary overshield health when activating Blood Pump or healing items." },
+        { "tier": 20, "name": "Rip and Tear / Savage Sling", "desc": "Massive damage swap between Quick Melee and Shotgun blasts, or throw enemies in Blunt combat." }
+      ]
+    },
+    "reflexes": {
+      "name": "Reflexes",
+      "bonus": "+0.5% Crit Chance per point",
+      "weapons": ["Blades", "Assault Rifles", "Submachine Guns"],
+      "perks": [
+        { "tier": 4, "name": "Slippery", "desc": "Harder for enemies to hit you while moving faster." },
+        { "tier": 9, "name": "Dash & Lead and Steel", "desc": "Unlocks directional Dash and bullet deflection with Blades." },
+        { "tier": 15, "name": "Air Dash & Finisher: Bladerunner", "desc": "Unlocks midair dashing and instant katana finishers restoring 25% Health." },
+        { "tier": 20, "name": "Slaughterhouse / Tailwind", "desc": "All Blade strikes apply Bleeding; Air Dashes and Double Jumps restore +25 Stamina." }
+      ]
+    },
+    "tech": {
+      "name": "Technical Ability",
+      "bonus": "+2 Health Item Recharge Speed per point (Governs Cyberware Capacity via perks)",
+      "weapons": ["Tech Weapons", "Projectiles & Explosives", "Cyberware"],
+      "perks": [
+        { "tier": 4, "name": "All Things Cyber", "desc": "All cyberware stat modifiers increase by 10%, reducing capacity cost of skeleton/integumentary." },
+        { "tier": 9, "name": "Renaissance Punk", "desc": "+4 Cyberware Capacity for each Attribute at 9 or higher." },
+        { "tier": 15, "name": "License to Chrome & Pyromania", "desc": "Unlocks extra skeleton cyberware slot; explosive hits stack movement speed and mitigation." },
+        { "tier": 20, "name": "Edgerunner & Chain Lightning", "desc": "Exceed Cyberware Capacity by up to 50 points at the cost of max HP to trigger Fury state (+10% damage, +30% Crit Chance)." }
+      ]
+    },
+    "intelligence": {
+      "name": "Intelligence",
+      "bonus": "+1 Max RAM per 4 points",
+      "weapons": ["Smart Weapons", "Cyberdeck Quickhacks", "Monowire"],
+      "perks": [
+        { "tier": 4, "name": "Optimization", "desc": "+35% RAM recovery rate." },
+        { "tier": 9, "name": "Hack Queue & Embedded Exploit", "desc": "Queue 2 quickhacks on a single target; +60% quickhack damage vs enemies affected by Control/Covert hacks." },
+        { "tier": 15, "name": "Overclock & Target Lock Transfer", "desc": "Cast quickhacks using Health when out of RAM; switching from hip-fire to ADS keeps Smart Gun locks." },
+        { "tier": 20, "name": "Spillover & Smart Synergy", "desc": "50% chance for quickhacks to spread to nearby targets during Overclock; instant Smart Gun locks." }
+      ]
+    },
+    "cool": {
+      "name": "Cool",
+      "bonus": "+1.25% Crit Damage per point",
+      "weapons": ["Pistols & Revolvers", "Precision & Sniper Rifles", "Throwable Knives & Axes"],
+      "perks": [
+        { "tier": 4, "name": "Feline Footwork", "desc": "+15% movement speed and +15% Mitigation Chance while crouched." },
+        { "tier": 9, "name": "Focus & Scorpion Sting", "desc": "No stamina drain when aiming Pistols/Snipers above 85% stamina; thrown knives apply Poison." },
+        { "tier": 15, "name": "Deadeye & Juggler", "desc": "+20% headshot/weakspot damage and zero bullet spread; headshot/poison kills instantly reset all thrown knife cooldowns." },
+        { "tier": 20, "name": "Nerves of Tungsten-Steel / Style Over Substance", "desc": "Guaranteed Crit on headshots/weakspots in Deadeye; guaranteed Crit with thrown weapons when crouch-sprinting or dodging." }
+      ]
+    }
+  },
+  "skillTracks": [
+    {
+      "id": "headhunter",
+      "name": "Headhunter",
+      "attribute": "cool",
+      "desc": "Leveled via headshots, thrown knives, and stealth takedowns.",
+      "milestones": [
+        { "level": 15, "bonus": "+10% Crouch Speed" },
+        { "level": 35, "bonus": "+15% Headshot & Weakspot Damage" },
+        { "level": 60, "bonus": "Optical Camo automatically recharges on stealth takedowns" }
+      ]
+    },
+    {
+      "id": "netrunner",
+      "name": "Netrunner",
+      "attribute": "intelligence",
+      "desc": "Leveled via quickhacking, breaching terminals, and Smart Weapons.",
+      "milestones": [
+        { "level": 15, "bonus": "+1 Max RAM Capacity" },
+        { "level": 35, "bonus": "-20% Quickhack Upload Time" },
+        { "level": 60, "bonus": "Overclock reveals and hacks enemies through solid walls" }
+      ]
+    },
+    {
+      "id": "shinobi",
+      "name": "Shinobi",
+      "attribute": "reflexes",
+      "desc": "Leveled via dashing, vaulting, Blades, ARs, and SMGs.",
+      "milestones": [
+        { "level": 15, "bonus": "+10% Movement Speed" },
+        { "level": 35, "bonus": "+25% Mitigation Strength during Dash" },
+        { "level": 60, "bonus": "Zero Stamina cost for katana swings while Sandevistan is active" }
+      ]
+    },
+    {
+      "id": "solo",
+      "name": "Solo",
+      "attribute": "body",
+      "desc": "Leveled via Shotguns, LMGs, Blunt weapons, and Adrenaline.",
+      "milestones": [
+        { "level": 15, "bonus": "+25 Carrying Capacity & +15 Max HP" },
+        { "level": 35, "bonus": "+15% Crit Damage at close range" },
+        { "level": 60, "bonus": "+50% Berserk duration and +25% Adrenaline Rush efficiency" }
+      ]
+    },
+    {
+      "id": "engineer",
+      "name": "Engineer",
+      "attribute": "tech",
+      "desc": "Leveled via Tech weapons, grenades, and equipping high-tier Cyberware.",
+      "milestones": [
+        { "level": 15, "bonus": "+15 Cyberware Capacity" },
+        { "level": 35, "bonus": "+15% Armor & +10% Health Item Recharge" },
+        { "level": 60, "bonus": "Periodically releases an automatic EMP blast during Fury state" }
+      ]
+    }
+  ],
+  "chromeCapacity": {
+    "confidence": "estimate",
+    "baseCapacity": 24,
+    "perLevel": 3,
+    "renaissancePunk": { "requiresTech": 9, "attributeThreshold": 9, "perAttribute": 4 },
+    "engineerBonus": { "skillLevel": 15, "capacity": 15 },
+    "shardBonusMax": 70,
+    "edgerunner": {
+      "requiresTech": 20,
+      "maxOverCap": 50,
+      "hpPenaltyPctPerPoint": 0.5,
+      "furyChancePctPerPoint": 0.1,
+      "furyDamageBonusPct": 10,
+      "furyCritChanceBonusPct": 30
+    },
+    "armorMultiplier": { "itemId": "para-bellum", "multiplier": 1.13 },
+    "items": [
+      { "id": "apogee", "name": "Militech 'Apogee' Sandevistan", "slot": "Operating System", "cost": 44, "armor": 0, "iconic": true, "gearMatch": "Apogee" },
+      { "id": "rippler", "name": "Tetratronic Rippler Mk.5", "slot": "Operating System", "cost": 35, "armor": 0, "iconic": false, "gearMatch": "Rippler" },
+      { "id": "berserk", "name": "Militech Berserk", "slot": "Operating System", "cost": 39, "armor": 0, "iconic": false, "gearMatch": "Berserk" },
+      { "id": "axolotl", "name": "Axolotl", "slot": "Frontal Cortex", "cost": 48, "armor": 0, "iconic": true, "gearMatch": "Axolotl" },
+      { "id": "cox2", "name": "COX-2 Cybersomatic Optimizer", "slot": "Frontal Cortex", "cost": 50, "armor": 0, "iconic": true, "gearMatch": "COX-2" },
+      { "id": "chitin", "name": "Chitin", "slot": "Integumentary System", "cost": 50, "armor": 200, "iconic": true, "gearMatch": "Chitin" },
+      { "id": "optical-camo", "name": "Optical Camo (Tier 5++)", "slot": "Integumentary System", "cost": 20, "armor": 30, "iconic": false, "gearMatch": "Optical Camo" },
+      { "id": "cellular-adapter", "name": "Cellular Adapter", "slot": "Integumentary System", "cost": 8, "armor": 162, "iconic": false },
+      { "id": "epimorphic-skeleton", "name": "Epimorphic Skeleton", "slot": "Skeleton", "cost": 40, "armor": 126, "iconic": false },
+      { "id": "para-bellum", "name": "Para Bellum", "slot": "Skeleton", "cost": 20, "armor": 85, "iconic": false },
+      { "id": "deep-field", "name": "Deep-Field Visual Interface", "slot": "Face (Kiroshi)", "cost": 40, "armor": 0, "iconic": true },
+      { "id": "gorilla-arms", "name": "Gorilla Arms", "slot": "Arms", "cost": 16, "armor": 20, "iconic": false },
+      { "id": "reinforced-tendons", "name": "Reinforced Tendons", "slot": "Legs", "cost": 20, "armor": 30, "iconic": false }
+    ]
   },
   "presets": [
     {
       "id": "blackwall-assassin",
       "name": "Black Wall Assassin",
-      "archetype": "BLACKWALL GATEWAY // OVERCLOCK CALAMITY // SMART SMG",
+      "archetype": "Blackwall Gateway // Overclock Calamity // Smart SMG",
       "difficulty": "Disaster-Class Netrunner",
       "summary": "A walking extinction event. Channel rogue AIs from beyond the Blackwall using the Militech Canto Mk.6 and Erebus. Activate Overclock to sacrifice your own lifeforce as raw bandwidth, watching the Blackwall Gateway quickhack autonomously leap from squad to squad in a cascading chain of neural frying while Biomonitor + Blood Pump endlessly out-heal the toll.",
-      "stats": {
-        "body": 20,
-        "reflexes": 15,
-        "tech": 20,
-        "intelligence": 20,
-        "cool": 6,
-        "relic": 9
-      },
+      "stats": { "body": 20, "reflexes": 15, "tech": 20, "intelligence": 20, "cool": 6, "relic": 9 },
+      "priority": ["intelligence", "tech", "body", "reflexes", "cool"],
+      "skills": { "netrunner": 60, "engineer": 55, "solo": 45, "shinobi": 30, "headhunter": 15 },
+      "perkPath": [
+        { "attr": "intelligence", "tier": 4, "perk": "Optimization", "why": "Faster RAM recovery so early Cyberware Malfunction chains don't stall." },
+        { "attr": "body", "tier": 4, "perk": "Painkiller", "why": "Passive combat regen to offset the HP you'll later burn on Overclock." },
+        { "attr": "tech", "tier": 4, "perk": "All Things Cyber", "why": "Amplifies Canto Mk.6, COX-2 and Ex-Disk stat modifiers." },
+        { "attr": "intelligence", "tier": 9, "perk": "Hack Queue", "why": "Queue Cyberware Malfunction -> Synapse Burnout onto one target." },
+        { "attr": "intelligence", "tier": 9, "perk": "Embedded Exploit", "why": "Bonus quickhack damage on targets already hit by Control/Covert hacks." },
+        { "attr": "intelligence", "tier": 9, "perk": "Queue Acceleration", "why": "Cheaper queued hacks to keep Blackwall Gateway affordable." },
+        { "attr": "tech", "tier": 9, "perk": "Renaissance Punk", "why": "+Capacity per attribute at 9+ to fit Canto, COX-2 and Ex-Disk." },
+        { "attr": "intelligence", "tier": 15, "perk": "Overclock", "why": "THE ENGINE: cast quickhacks with Health once RAM is empty." },
+        { "attr": "intelligence", "tier": 15, "perk": "Biosynergy", "why": "RAM keeps regenerating while Overclock is active." },
+        { "attr": "body", "tier": 15, "perk": "Adrenaline Rush", "why": "Blood Pump overshield buffers the Overclock HP drain." },
+        { "attr": "intelligence", "tier": 15, "perk": "Target Lock Transfer", "why": "Erebus keeps its locks when swapping hip-fire to ADS." },
+        { "attr": "reflexes", "tier": 4, "perk": "Slippery", "why": "Harder to hit while repositioning between uploads." },
+        { "attr": "reflexes", "tier": 9, "perk": "Dash", "why": "Break line of sight mid-upload." },
+        { "attr": "intelligence", "tier": 20, "perk": "Spillover", "why": "Hacks jump to nearby enemies during Overclock, carrying Blackwall Gateway squad to squad." },
+        { "attr": "intelligence", "tier": 20, "perk": "Smart Synergy", "why": "Instant Smart locks so Erebus mops up stragglers." },
+        { "attr": "tech", "tier": 15, "perk": "License to Chrome", "why": "Extra skeleton slot for more RAM/armor chrome." },
+        { "attr": "reflexes", "tier": 15, "perk": "Air Dash", "why": "Vertical escapes when a squad rushes you." },
+        { "attr": "tech", "tier": 20, "perk": "Edgerunner", "why": "Overload capacity for Fury procs on every Blackwall kill." },
+        { "attr": "tech", "tier": 4, "perk": "Health Freak", "why": "Faster health item recharge for overdraw emergencies." }
+      ],
       "synergy": {
         "opening": "Engage Overclock + Optical Camo and upload Cyberware Malfunction -> Synapse Burnout -> Blackwall Gateway onto the highest-threat target. The Canto's rogue AI immediately breaches the local subnet, turning the primary target into a screaming conduit.",
         "loop": "Every time Blackwall Gateway or Synapse Burnout flatlines an enemy, Blood Daemon, Sublimation, and Axolotl refund your HP and Overclock duration. Unload Erebus dark-energy rounds into stragglers to instantly execute anyone below 33% HP with rogue AI beams.",
         "failsafe": "20 Body (Adrenaline Rush) + Biomonitor + Blood Pump + Heal-On-Kill creates an immortal HP battery that fuels infinite Overclock RAM. Second Heart stands by as a hard reboot if you ever overdraw your lifeforce."
       },
       "gear": [
-        {
-          "name": "Militech Canto Mk.6",
-          "slot": "Operating System (Iconic Cyberdeck)",
-          "district": "Cynosure Facility, Dogtown",
-          "location": "Crafted from the Behavioral System Component looted on the Cynosure bunker path ('Somewhat Damaged') + decoded Cerberus AI core via 'This Corrosion'."
-        },
-        {
-          "name": "Erebus",
-          "slot": "Weapon (Iconic Power SMG)",
-          "district": "Cynosure Facility, Dogtown",
-          "location": "Crafted using the spec found in the Maintenance Room of the underground Militech Cynosure facility during 'Somewhat Damaged'. Infused with a rogue AI from beyond the Blackwall."
-        },
-        {
-          "name": "COX-2 Cybersomatic Optimizer",
-          "slot": "Frontal Cortex (Iconic)",
-          "district": "Dogtown Stadium",
-          "location": "Purchased from Dogtown Ripperdocs at Level 40+. Grants 100% Quickhack Crit Chance at the cost of -4 Max RAM, turning Blackwall & Synapse Burnout into guaranteed lethal crits."
-        },
-        {
-          "name": "Ex-Disk",
-          "slot": "Frontal Cortex",
-          "district": "Any Ripperdoc",
-          "location": "Available at all Night City & Dogtown Ripperdocs. Increases Max RAM by +6 and upload speed by +20% to offset the heavy RAM cost of Blackwall Gateway."
-        },
-        {
-          "name": "Axolotl",
-          "slot": "Frontal Cortex (Iconic)",
-          "district": "Northside, Watson / Dogtown",
-          "location": "Reward for completing all 23 of Regina Jones's gigs (or purchased in Dogtown Stadium). Instantly reduces all cyberware cooldowns on every Blackwall kill."
-        },
-        {
-          "name": "Biomonitor + Blood Pump",
-          "slot": "Circulatory System",
-          "district": "Any Ripperdoc",
-          "location": "Available at all Ripperdocs. Automatically fires Blood Pump when Overclock drains your HP below 50%, fueling Adrenaline Rush and keeping your RAM pool infinite."
-        }
+        { "name": "Militech Canto Mk.6", "slot": "Operating System (Iconic Cyberdeck)", "district": "Cynosure Facility, Dogtown", "location": "Crafted from the Behavioral System Component looted on the Cynosure bunker path ('Somewhat Damaged') + decoded Cerberus AI core via 'This Corrosion'." },
+        { "name": "Erebus", "slot": "Weapon (Iconic Power SMG)", "district": "Cynosure Facility, Dogtown", "location": "Crafted using the spec found in the Maintenance Room of the underground Militech Cynosure facility during 'Somewhat Damaged'. Infused with a rogue AI from beyond the Blackwall." },
+        { "name": "COX-2 Cybersomatic Optimizer", "slot": "Frontal Cortex (Iconic)", "district": "Dogtown Stadium", "location": "Purchased from Dogtown Ripperdocs at Level 40+. Grants 100% Quickhack Crit Chance at the cost of -4 Max RAM, turning Blackwall & Synapse Burnout into guaranteed lethal crits." },
+        { "name": "Ex-Disk", "slot": "Frontal Cortex", "district": "Any Ripperdoc", "location": "Available at all Night City & Dogtown Ripperdocs. Increases Max RAM by +6 and upload speed by +20% to offset the heavy RAM cost of Blackwall Gateway." },
+        { "name": "Axolotl", "slot": "Frontal Cortex (Iconic)", "district": "Northside, Watson / Dogtown", "location": "Reward for completing all 23 of Regina Jones's gigs (or purchased in Dogtown Stadium). Instantly reduces all cyberware cooldowns on every Blackwall kill." },
+        { "name": "Biomonitor + Blood Pump", "slot": "Circulatory System", "district": "Any Ripperdoc", "location": "Available at all Ripperdocs. Automatically fires Blood Pump when Overclock drains your HP below 50%, fueling Adrenaline Rush and keeping your RAM pool infinite." }
       ]
     },
     {
-      "id": "sandevistan-cyber-ninja",
+      "id": "sandevistan-ninja",
       "name": "Sandevistan Cyber-Ninja",
-      "archetype": "BLADES // THROWN KNIVES // TIME DILATION",
+      "archetype": "Blades // Thrown Knives // Time Dilation",
       "difficulty": "Aggressive High-Mobility",
       "summary": "Slow time by 85% with the Apogee Sandevistan, air-dash across rooftops, deflect bullets back at snipers, and chain instant katana finishers and knife resets.",
-      "stats": {
-        "body": 18,
-        "reflexes": 20,
-        "tech": 20,
-        "intelligence": 3,
-        "cool": 20,
-        "relic": 9
-      },
+      "stats": { "body": 18, "reflexes": 20, "tech": 20, "intelligence": 3, "cool": 20, "relic": 9 },
+      "priority": ["reflexes", "cool", "tech", "body", "intelligence"],
+      "skills": { "shinobi": 60, "headhunter": 50, "engineer": 45, "solo": 30, "netrunner": 10 },
+      "perkPath": [
+        { "attr": "reflexes", "tier": 4, "perk": "Slippery", "why": "Survive early fights while closing distance." },
+        { "attr": "cool", "tier": 4, "perk": "Ninjutsu", "why": "Faster crouch-sprint for stealth openers." },
+        { "attr": "reflexes", "tier": 9, "perk": "Dash", "why": "Core gap-closer for blade combat." },
+        { "attr": "reflexes", "tier": 9, "perk": "Lead and Steel", "why": "Deflect bullets with your katana." },
+        { "attr": "cool", "tier": 4, "perk": "Feline Footwork", "why": "Movement speed and mitigation while crouched." },
+        { "attr": "tech", "tier": 4, "perk": "All Things Cyber", "why": "Boosts Sandevistan and chrome modifiers." },
+        { "attr": "cool", "tier": 9, "perk": "Scorpion Sting", "why": "Thrown knives apply Poison." },
+        { "attr": "reflexes", "tier": 15, "perk": "Air Dash", "why": "Rooftop mobility and aerial approaches." },
+        { "attr": "reflexes", "tier": 15, "perk": "Finisher: Bladerunner", "why": "Katana finishers restore 25% Health." },
+        { "attr": "tech", "tier": 9, "perk": "Renaissance Punk", "why": "+Capacity to slot Apogee early." },
+        { "attr": "cool", "tier": 15, "perk": "Juggler", "why": "Headshot/poison kills reset thrown knife cooldowns." },
+        { "attr": "body", "tier": 4, "perk": "Painkiller", "why": "Passive combat regen." },
+        { "attr": "reflexes", "tier": 20, "perk": "Slaughterhouse", "why": "All blade strikes apply Bleeding." },
+        { "attr": "reflexes", "tier": 20, "perk": "Tailwind", "why": "Air Dashes and Double Jumps restore Stamina." },
+        { "attr": "tech", "tier": 15, "perk": "License to Chrome", "why": "Extra skeleton chrome slot." },
+        { "attr": "cool", "tier": 20, "perk": "Style Over Substance", "why": "Guaranteed thrown-weapon crits while dodging." },
+        { "attr": "body", "tier": 15, "perk": "Adrenaline Rush", "why": "Overshield buffer for risky dives." },
+        { "attr": "tech", "tier": 20, "perk": "Edgerunner", "why": "Overload capacity for Fury state." },
+        { "attr": "tech", "tier": 4, "perk": "Health Freak", "why": "Faster health item recharge." }
+      ],
       "gear": [
-        {
-          "name": "Byakko",
-          "slot": "Weapon (Iconic Katana)",
-          "district": "Japantown, Westbrook",
-          "location": "Reward from Wakako Okada after completing all 8 of her Westbrook gigs. Grants rapid leaping combo slashes after a kill."
-        },
-        {
-          "name": "Errata",
-          "slot": "Weapon (Iconic Thermal Katana)",
-          "district": "Arroyo, Santo Domingo",
-          "location": "Electric Corp Power Station, Level -2 — Inside the glowing furnace during 'Disasterpiece'. Guaranteed Crits against burning targets."
-        },
-        {
-          "name": "Nehan + Satori",
-          "slot": "Weapon (Iconic Knife & Katana)",
-          "district": "Arasaka Waterfront, Watson",
-          "location": "Konpeki Plaza Penthouse during 'The Heist' — Loot Nehan from Saburo Arasaka and Satori from the rooftop AV. Synergizes to trigger Hemorrhaging."
-        },
-        {
-          "name": "Militech 'Apogee' Sandevistan",
-          "slot": "Operating System",
-          "district": "Any Ripperdoc (Lvl 40+)",
-          "location": "Available at all Night City & Dogtown Ripperdocs at Level 40 (or free inside Dogtown supply drops). Slows time by 85% and extends duration on kills."
-        },
-        {
-          "name": "Axolotl",
-          "slot": "Frontal Cortex (Iconic)",
-          "district": "Northside, Watson",
-          "location": "Reward for completing all 23 of Regina Jones's gigs (or purchased from Dogtown Stadium Black Market vendor). Instantly reduces all cyberware cooldowns on kill."
-        }
+        { "name": "Byakko", "slot": "Weapon (Iconic Katana)", "district": "Japantown, Westbrook", "location": "Reward from Wakako Okada after completing all 8 of her Westbrook gigs. Grants rapid leaping combo slashes after a kill." },
+        { "name": "Errata", "slot": "Weapon (Iconic Thermal Katana)", "district": "Arroyo, Santo Domingo", "location": "Electric Corp Power Station, Level -2 — Inside the glowing furnace during 'Disasterpiece'. Guaranteed Crits against burning targets." },
+        { "name": "Nehan + Satori", "slot": "Weapon (Iconic Knife & Katana)", "district": "Arasaka Waterfront, Watson", "location": "Konpeki Plaza Penthouse during 'The Heist' — Loot Nehan from Saburo Arasaka and Satori from the rooftop AV. Synergizes to trigger Hemorrhaging." },
+        { "name": "Militech 'Apogee' Sandevistan", "slot": "Operating System", "district": "Any Ripperdoc (Lvl 40+)", "location": "Available at all Night City & Dogtown Ripperdocs at Level 40 (or free inside Dogtown supply drops). Slows time by 85% and extends duration on kills." },
+        { "name": "Axolotl", "slot": "Frontal Cortex (Iconic)", "district": "Northside, Watson", "location": "Reward for completing all 23 of Regina Jones's gigs (or purchased from Dogtown Stadium Black Market vendor). Instantly reduces all cyberware cooldowns on kill." }
       ]
     },
     {
-      "id": "overclock-contagion-netrunner",
+      "id": "overclock-netrunner",
       "name": "Overclock Contagion Netrunner",
-      "archetype": "QUICKHACKS // SMART SMGS // MONOWIRE",
+      "archetype": "Quickhacks // Smart SMGs // Blackwall AI",
       "difficulty": "Tactical God-Mode",
-      "summary": "Detonate entire squads through walls by chaining Tier 5 Contagion with Overheat and Prototype: Shingen Mark V thermal rounds while Overclock converts HP into infinite RAM.",
-      "stats": {
-        "body": 20,
-        "reflexes": 15,
-        "tech": 20,
-        "intelligence": 20,
-        "cool": 6,
-        "relic": 9
-      },
+      "summary": "Convert Health into infinite RAM via Overclock, queue Contagion + Overheat to detonate entire squads through walls, and mop up survivors with instant-lock Smart SMGs.",
+      "stats": { "body": 20, "reflexes": 15, "tech": 20, "intelligence": 20, "cool": 6, "relic": 9 },
+      "priority": ["intelligence", "tech", "body", "reflexes", "cool"],
+      "skills": { "netrunner": 60, "engineer": 55, "solo": 45, "shinobi": 30, "headhunter": 15 },
+      "perkPath": [
+        { "attr": "intelligence", "tier": 4, "perk": "Optimization", "why": "Faster RAM recovery for early Contagion spam." },
+        { "attr": "tech", "tier": 4, "perk": "All Things Cyber", "why": "Amplifies Rippler and cyberdeck modifiers." },
+        { "attr": "intelligence", "tier": 9, "perk": "Hack Queue", "why": "Queue Contagion -> Overheat for the Rippler bonus." },
+        { "attr": "intelligence", "tier": 9, "perk": "Embedded Exploit", "why": "Bonus damage on Control/Covert-hacked targets." },
+        { "attr": "body", "tier": 4, "perk": "Painkiller", "why": "Passive combat regen." },
+        { "attr": "intelligence", "tier": 9, "perk": "Queue Acceleration", "why": "Cheaper queued hacks." },
+        { "attr": "tech", "tier": 9, "perk": "Renaissance Punk", "why": "+Capacity for deck and COX-2." },
+        { "attr": "intelligence", "tier": 15, "perk": "Overclock", "why": "Cast with Health when RAM runs dry." },
+        { "attr": "intelligence", "tier": 15, "perk": "Target Lock Transfer", "why": "Yinglong / Shingen keep locks on ADS." },
+        { "attr": "intelligence", "tier": 15, "perk": "Biosynergy", "why": "RAM regenerates during Overclock." },
+        { "attr": "body", "tier": 15, "perk": "Adrenaline Rush", "why": "Overshield buffers Overclock HP drain." },
+        { "attr": "intelligence", "tier": 20, "perk": "Spillover", "why": "Contagion leaps across whole squads during Overclock." },
+        { "attr": "intelligence", "tier": 20, "perk": "Smart Synergy", "why": "Instant locks for Shingen Mark V explosive rounds." },
+        { "attr": "tech", "tier": 15, "perk": "Pyromania", "why": "Shingen explosive hits stack speed and mitigation." },
+        { "attr": "reflexes", "tier": 4, "perk": "Slippery", "why": "Harder to hit while moving." },
+        { "attr": "reflexes", "tier": 9, "perk": "Dash", "why": "Break line of sight mid-upload." },
+        { "attr": "tech", "tier": 15, "perk": "License to Chrome", "why": "Extra skeleton chrome slot." },
+        { "attr": "reflexes", "tier": 15, "perk": "Air Dash", "why": "Vertical escapes." },
+        { "attr": "tech", "tier": 20, "perk": "Edgerunner", "why": "Overload capacity for Fury." },
+        { "attr": "tech", "tier": 4, "perk": "Health Freak", "why": "Faster health item recharge." }
+      ],
       "gear": [
-        {
-          "name": "Tetratronic Rippler Mk.5",
-          "slot": "Operating System (Cyberdeck)",
-          "district": "Any Ripperdoc",
-          "location": "Grants +40% damage to combat quickhacks when immediately followed by a non-combat quickhack in the queue."
-        },
-        {
-          "name": "Yinglong (Crafting Spec)",
-          "slot": "Weapon (Iconic Smart SMG)",
-          "district": "Wellsprings, Heywood",
-          "location": "Dropped by Denzel Cryer during the Suspected Organized Crime Activity in southern Wellsprings. Triggers EMP bursts on hit."
-        }
+        { "name": "Tetratronic Rippler Mk.5", "slot": "Operating System (Cyberdeck)", "district": "Any Ripperdoc", "location": "Purchased from Ripperdocs. Grants +40% damage to combat quickhacks when immediately followed by a non-combat quickhack in the queue. (Swap for Militech Canto Mk.6 if opting for the Blackwall Gateway quickhack instead of Erebus)." },
+        { "name": "Yinglong (Crafting Spec)", "slot": "Weapon (Iconic Smart SMG)", "district": "Wellsprings, Heywood", "location": "Looted from Denzel Cryer during the Suspected Organized Crime Activity in southern Wellsprings. Triggers EMP bursts on impact." },
+        { "name": "Prototype: Shingen Mark V", "slot": "Weapon (Iconic Smart SMG)", "district": "Arroyo, Santo Domingo", "location": "Arasaka Industrial Park, Loading Bay 4 — Inside open shipping container #667 (disarm the wall mine first). Fires explosive incendiary smart rounds that detonate Contagion." },
+        { "name": "Erebus (Crafting Spec)", "slot": "Weapon (Iconic Blackwall SMG)", "district": "Dogtown (Cynosure)", "location": "Found inside the sealed maintenance room during 'Somewhat Damaged' (requires 20 Technical Ability or powering the circuit box). Infuses rounds with Blackwall AI. Mutually exclusive with Militech Canto Mk.6." },
+        { "name": "COX-2 Cybersomatic Optimizer", "slot": "Frontal Cortex (Iconic)", "district": "Dogtown Ripperdocs", "location": "Purchased from Ripperdocs inside Dogtown (EBM Petrochem Stadium or Longshore Stacks). Grants 100% Quickhack Crit Chance at the cost of -4 Max RAM." }
       ]
     },
     {
-      "id": "chrome-berserker-solo",
+      "id": "chrome-berserker",
       "name": "Chrome Berserker Solo",
-      "archetype": "SHOTGUNS // GORILLA ARMS // PYROMANIA",
+      "archetype": "Shotguns // Gorilla Arms // Pyromania",
       "difficulty": "Unkillable Tank",
-      "summary": "Shrug off fatal damage with Biodyne Berserk and Adrenaline Rush overshields, obliterate bosses at point-blank range with Iconic double-barrel shotguns, and hurl enemies like ragdolls.",
-      "stats": {
-        "body": 20,
-        "reflexes": 20,
-        "tech": 20,
-        "intelligence": 3,
-        "cool": 18,
-        "relic": 9
-      },
+      "summary": "Stack 1,400+ Armor, maintain permanent Adrenaline Rush overshields, obliterate bosses at point-blank range with iconic double-barrel shotguns, and hurl enemies like ragdolls.",
+      "stats": { "body": 20, "reflexes": 20, "tech": 20, "intelligence": 3, "cool": 18, "relic": 9 },
+      "priority": ["body", "tech", "reflexes", "cool", "intelligence"],
+      "skills": { "solo": 60, "engineer": 60, "shinobi": 45, "headhunter": 25, "netrunner": 5 },
+      "perkPath": [
+        { "attr": "body", "tier": 4, "perk": "Painkiller", "why": "Passive combat regen from level 1." },
+        { "attr": "body", "tier": 4, "perk": "Spontaneous Obliteration", "why": "Shotgun dismemberment at close range." },
+        { "attr": "tech", "tier": 4, "perk": "All Things Cyber", "why": "Boosts armor chrome modifiers." },
+        { "attr": "body", "tier": 9, "perk": "Die! Die! Die!", "why": "Shotgun fire rate and crit chance scale as stamina drops." },
+        { "attr": "tech", "tier": 4, "perk": "Health Freak", "why": "Faster health item recharge feeds Adrenaline Rush." },
+        { "attr": "reflexes", "tier": 4, "perk": "Slippery", "why": "Harder to hit while charging in." },
+        { "attr": "tech", "tier": 9, "perk": "Renaissance Punk", "why": "+Capacity for Chitin and armor chrome." },
+        { "attr": "body", "tier": 15, "perk": "Adrenaline Rush", "why": "Overshield on every heal: the tank's core." },
+        { "attr": "reflexes", "tier": 9, "perk": "Dash", "why": "Close distance to shotgun range." },
+        { "attr": "tech", "tier": 15, "perk": "License to Chrome", "why": "Extra skeleton slot for Para Bellum / Epimorphic." },
+        { "attr": "body", "tier": 20, "perk": "Rip and Tear", "why": "Quick Melee / shotgun blast damage swap." },
+        { "attr": "body", "tier": 20, "perk": "Savage Sling", "why": "Hurl enemies like ragdolls." },
+        { "attr": "tech", "tier": 15, "perk": "Pyromania", "why": "Dezerter burn synergy: speed and mitigation stacks." },
+        { "attr": "reflexes", "tier": 15, "perk": "Air Dash", "why": "Aerial engages." },
+        { "attr": "tech", "tier": 20, "perk": "Edgerunner", "why": "Overload capacity for Fury alongside Berserk." },
+        { "attr": "cool", "tier": 4, "perk": "Feline Footwork", "why": "Mitigation while crouched." },
+        { "attr": "reflexes", "tier": 20, "perk": "Tailwind", "why": "Stamina refunds keep Die! Die! Die! cycling." }
+      ],
       "gear": [
-        {
-          "name": "Guts",
-          "slot": "Weapon (Iconic Power Shotgun)",
-          "district": "Corpo Plaza, City Center",
-          "location": "Memorial Park — Hidden in the bushes underneath the elevated glass walkway on the west side of the ring (near the three monks). Massive pellet spread and recoil."
-        },
-        {
-          "name": "Order",
-          "slot": "Weapon (Iconic Tech Shotgun)",
-          "district": "Dogtown Stadium",
-          "location": "Purchased from the Black Market vendor inside EBM Petrochem Stadium. Vaporizes everything in front of you when charged to 66%."
-        }
+        { "name": "Guts", "slot": "Weapon (Iconic Power Shotgun)", "district": "Corpo Plaza, City Center", "location": "Memorial Park — Hidden in the bushes underneath the elevated glass walkway on the west side of the ring (near the three monks). Massive pellet spread and recoil." },
+        { "name": "Dezerter", "slot": "Weapon (Iconic Double-Barrel)", "district": "Dogtown / Longshore Stacks", "location": "Spare Leon Rinder during 'Gig: The Man Who Killed Jason Forman', then unlock his garage stash in 'Addicted to Chaos'. Sets you on fire on kill to boost speed and Mitigation." },
+        { "name": "Sovereign (Crafting Spec)", "slot": "Weapon (Iconic Double-Barrel)", "district": "Japantown, Westbrook", "location": "Looted from Shinobu Imai at the Suspected Organized Crime Activity in Crescent & Broad. Fires both barrels simultaneously at close range." },
+        { "name": "Militech Berserk", "slot": "Operating System", "district": "Any Ripperdoc (Lvl 40+)", "location": "Purchased from any Ripperdoc at Level 40+. Grants complete invulnerability to damage while active and heals V based on enemies killed at expiration." },
+        { "name": "Chitin", "slot": "Integumentary System (Iconic)", "district": "Dogtown Ripperdocs", "location": "Purchased exclusively from Dogtown Ripperdocs. Provides massive +200 Armor and scales health regeneration directly with your Body attribute." }
       ]
     },
     {
-      "id": "phantom-deadeye-gunslinger",
+      "id": "phantom-deadeye",
       "name": "Phantom Deadeye Gunslinger",
-      "archetype": "STEALTH PISTOLS // TECH SNIPERS // OPTICAL CAMO",
+      "archetype": "Stealth Pistols // Tech Snipers // Optical Camo",
       "difficulty": "Precision Assassin",
-      "summary": "Chain guaranteed 300% headshot crits with Johnny's Malorian or Alex's suppressed pistol, pierce concrete walls with Tech Snipers, and vanish instantly with Relic Emergency Cloaking.",
-      "stats": {
-        "body": 18,
-        "reflexes": 20,
-        "tech": 20,
-        "intelligence": 3,
-        "cool": 20,
-        "relic": 9
-      },
+      "summary": "Chain zero-spread weakspot critical hits with Johnny's Malorian or Alex's suppressed pistol, pierce concrete walls with Tech Snipers, and vanish instantly with Relic Emergency Cloaking.",
+      "stats": { "body": 18, "reflexes": 20, "tech": 20, "intelligence": 3, "cool": 20, "relic": 9 },
+      "priority": ["cool", "reflexes", "tech", "body", "intelligence"],
+      "skills": { "headhunter": 60, "engineer": 50, "shinobi": 45, "solo": 30, "netrunner": 10 },
+      "perkPath": [
+        { "attr": "cool", "tier": 4, "perk": "Ninjutsu", "why": "Faster crouch-sprint for stealth positioning." },
+        { "attr": "cool", "tier": 4, "perk": "Feline Footwork", "why": "Speed and mitigation while crouched." },
+        { "attr": "cool", "tier": 9, "perk": "Focus", "why": "No stamina drain aiming pistols and snipers." },
+        { "attr": "tech", "tier": 4, "perk": "All Things Cyber", "why": "Boosts Optical Camo and chrome modifiers." },
+        { "attr": "reflexes", "tier": 4, "perk": "Slippery", "why": "Harder to hit when a stealth run goes loud." },
+        { "attr": "cool", "tier": 15, "perk": "Deadeye", "why": "+Headshot/weakspot damage and zero spread." },
+        { "attr": "tech", "tier": 9, "perk": "Renaissance Punk", "why": "+Capacity for Optical Camo and Kiroshi." },
+        { "attr": "reflexes", "tier": 9, "perk": "Dash", "why": "Relocate between sniper nests." },
+        { "attr": "body", "tier": 4, "perk": "Painkiller", "why": "Passive combat regen." },
+        { "attr": "cool", "tier": 20, "perk": "Nerves of Tungsten-Steel", "why": "Guaranteed headshot crits in Deadeye." },
+        { "attr": "tech", "tier": 15, "perk": "License to Chrome", "why": "Extra skeleton chrome slot." },
+        { "attr": "tech", "tier": 20, "perk": "Chain Lightning", "why": "Charged Breakthrough/Rasetsu shots arc to nearby enemies." },
+        { "attr": "reflexes", "tier": 15, "perk": "Air Dash", "why": "Vertical repositioning to high ground." },
+        { "attr": "tech", "tier": 20, "perk": "Edgerunner", "why": "Overload capacity for Fury crit chance." },
+        { "attr": "body", "tier": 15, "perk": "Adrenaline Rush", "why": "Overshield safety net." },
+        { "attr": "tech", "tier": 4, "perk": "Health Freak", "why": "Faster health item recharge." },
+        { "attr": "reflexes", "tier": 20, "perk": "Tailwind", "why": "Stamina refunds on Air Dash." }
+      ],
       "gear": [
-        {
-          "name": "Her Majesty",
-          "slot": "Weapon (Iconic Power Pistol)",
-          "district": "Dogtown",
-          "location": "Given automatically by Alex in the bunker during the Phantom Liberty main job 'Get It Together'. Grants guaranteed critical headshots and zero spread while Optical Camo is active."
-        },
-        {
-          "name": "Malorian Arms 3516",
-          "slot": "Weapon (Iconic Power Pistol)",
-          "district": "Northside, Watson",
-          "location": "Looted from Grayson on the Ebunike cargo ship during 'Chippin' In'. Quick melee unleashes a blast of flamethrower fire."
-        }
+        { "name": "Her Majesty", "slot": "Weapon (Iconic Power Pistol)", "district": "Dogtown", "location": "Given automatically by Alex in the bunker during the Phantom Liberty main job 'Get It Together'. Grants guaranteed critical headshots and zero spread while Optical Camo is active." },
+        { "name": "Malorian Arms 3516", "slot": "Weapon (Iconic Power Pistol)", "district": "Northside, Watson", "location": "Ebunike Docks — Looted from Jeremiah Grayson during Johnny Silverhand's side job 'Chippin' In'. Quick melee unleashes a devastating flamethrower blast." },
+        { "name": "Breakthrough (Crafting Spec)", "slot": "Weapon (Iconic Tech Sniper)", "district": "Rancho Coronado, Santo Domingo", "location": "Looted from Olga Elizabeth Longmead at the Suspected Organized Crime Activity. Ignores 100% of enemy armor and ricochets off interior walls." },
+        { "name": "Rasetsu", "slot": "Weapon (Iconic Tech Sniper)", "district": "Dogtown", "location": "Picked up from the sniper nest during the Phantom Liberty main job 'You Know My Name'. Charged shots bend mid-flight to hit additional nearby enemies." },
+        { "name": "Optical Camo + Relic Emergency Cloaking", "slot": "Integumentary System", "district": "Any Ripperdoc + Dogtown Terminals", "location": "Purchase Optical Camo at any Ripperdoc and unlock 'Emergency Cloaking' in the Relic tree so activating Camo mid-combat causes enemies to immediately lose track of you." }
       ]
+    }
+  ],
+  "dogtown_exclusives": [
+    {
+      "name": "Bald Eagle + Fang",
+      "slot": "Iconic Revolver & Iconic Knife",
+      "source": "Main Job: Firestarter (Kurt Hansen Boss Drop)",
+      "location": "EBM Petrochem Stadium — Looted directly from Colonel Kurt Hansen. Throw Fang to cripple a target's legs, then shoot Fang with Bald Eagle to detonate a massive dismembering shockwave and instantly return the knife to your hand."
+    },
+    {
+      "name": "Militech Canto Mk.6 (Crafting Spec)",
+      "slot": "Operating System (Iconic Blackwall Cyberdeck)",
+      "source": "Main Job: Somewhat Damaged / This Corrosion",
+      "location": "Cynosure Facility — Decode the experimental neural matrix from the Cerberus unit. Unlocks the 'Blackwall Gateway' ultimate quickhack that chains lethal AI corruption across multiple enemies. Mutually exclusive with Erebus."
+    },
+    {
+      "name": "Alabai / Laika / Taigan",
+      "slot": "Iconic Shotgun / Tech Revolver / Smart Pistol",
+      "source": "Dogtown Red-Smoke Airdrops",
+      "location": "Looted from Militech supply crates dropped across Dogtown rooftops (listen for the flare siren and red smoke plume). All three apply extreme Burn synergy for Errata and Contagion builds."
+    },
+    {
+      "name": "Ol' Reliable",
+      "slot": "Iconic Power Revolver",
+      "source": "Gig: Heaviest of Hearts (Final Mr. Hands Reward)",
+      "location": "Heavy Hearts Club, Dogtown — Rewarded after completing all 10 Dogtown gigs for Mr. Hands. Switching to this weapon grants +35% Headshot range and instant weakspot stun."
     }
   ]
 }

@@ -13,10 +13,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+      - run: npm ci
+      - name: Validate build DB against zod schema
+        run: npm run validate:db
       - run: npm run lint
       - run: npm run build
-      - name: Validate build DB is well-formed JSON
-        run: node -e "JSON.parse(require('fs').readFileSync('src/cyberpunk_2077_build_db_v2.json','utf8'))"
       - name: Docker image builds
         run: docker build -t nc-os-2077-build-planner:ci .
