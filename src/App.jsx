@@ -251,6 +251,16 @@ export default function App() {
     if (list && row) list.scrollTop = row.offsetTop - list.clientHeight / 2 + row.clientHeight / 2;
   }, [charLevel, activeTab]);
 
+  // "Build Forge" announcement banner; dismissal is remembered per browser (storage may be blocked).
+  const FEATURE_BANNER_KEY = 'nc_os_banner_build_forge_dismissed';
+  const [showFeatureBanner, setShowFeatureBanner] = useState(() => {
+    try { return localStorage.getItem(FEATURE_BANNER_KEY) !== '1'; } catch { return true; }
+  });
+  const dismissFeatureBanner = () => {
+    setShowFeatureBanner(false);
+    try { localStorage.setItem(FEATURE_BANNER_KEY, '1'); } catch { /* storage unavailable */ }
+  };
+
   const showToast = (msg) => {
     setStatusBanner(msg);
     setTimeout(() => setStatusBanner(''), 4000);
@@ -616,6 +626,35 @@ export default function App() {
           <div className="mb-4 bg-[#00f0ff]/15 border border-[#00f0ff] text-[#00f0ff] px-4 py-2 text-xs font-bold uppercase tracking-widest flex justify-between items-center">
             <span>&gt; SYSTEM_MSG // {statusBanner}</span>
             <button onClick={() => setStatusBanner('')} className="text-white hover:text-[#fcee0a] cursor-pointer">[X]</button>
+          </div>
+        )}
+
+        {/* --- INCOMING FEATURE BANNER (dismissible, remembered per browser) --- */}
+        {showFeatureBanner && (
+          <div
+            className="mb-4 border border-[#fcee0a]/70 bg-[#fcee0a]/10 px-4 py-2.5 flex gap-3 items-start justify-between"
+            style={{ clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))' }}
+          >
+            <div className="text-xs leading-relaxed">
+              <span
+                className="inline-block mr-2 mb-1 px-2 py-0.5 bg-[#fcee0a] text-black text-[10px] font-black uppercase tracking-widest"
+                style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+              >
+                INCOMING // IN DEVELOPMENT
+              </span>
+              <span className="text-[#fcee0a] font-bold uppercase tracking-wider">BUILD FORGE // </span>
+              <span className="text-slate-300">
+                A new feature is in the works: create your own build from scratch. Name it, write a description,
+                set its danger level and design your own perk tree, then save and export it.
+              </span>
+            </div>
+            <button
+              onClick={dismissFeatureBanner}
+              className="text-slate-400 hover:text-[#fcee0a] text-xs font-bold shrink-0 cursor-pointer"
+              aria-label="Dismiss feature announcement"
+            >
+              [X]
+            </button>
           </div>
         )}
 
