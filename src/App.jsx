@@ -25,6 +25,92 @@ const ATTR_COLORS = {
 };
 const attrName = (key) => ATTRIBUTES[key]?.name ?? key;
 
+// --- Level-by-level plan -------------------------------------------------------
+// Turns a preset's final stats + perkPath into a per-level attribute and perk plan.
+// Model: Lv 1 spends the starting points (each attribute capped at startingMaxAttr);
+// every level-up after that grants 1 attribute point and 1 perk point. Attribute
+// points chase the next unmet perkPath requirement, then fill to the final stats in
+// priority order. Each perk point buys the earliest perkPath perk whose requirement
+// is met; when none is available yet, the point is banked for the next one.
+// Bonus perk points (shards, etc.) are not modeled.
+const STARTING_MAX_ATTR = META.startingMaxAttr ?? 6;
+const PERK_POINTS_PER_LEVEL = 1;
+
+function buildLevelPlan(preset) {
+  const target = {};
+  ATTR_KEYS.forEach(k => {
+    target[k] = Math.min(MAX_ATTR, Math.max(MIN_ATTR, preset?.stats?.[k] ?? MIN_ATTR));
+  });
+  const priority = (preset?.priority?.length ? preset.priority : [...ATTR_KEYS].sort((a, b) => target[b] - target[a]))
+    .filter(k => ATTR_KEYS.includes(k));
+  ATTR_KEYS.forEach(k => { if (!priority.includes(k)) priority.push(k); });
+
+  // Perks whose requirement exceeds the build's final stat can never be taken.
+  const path = (preset?.perkPath ?? []).map((s, idx) => ({ ...s, idx, reachable: s.tier <= target[s.attr] }));
+  const buyable = path.filter(s => s.reachable);
+  const goals = [
+    ...buyable.map(s => ({ attr: s.attr, value: s.tier })),
+    ...priority.map(k => ({ attr: k, value: target[k] })),
+  ];
+
+  const cur = {};
+  ATTR_KEYS.forEach(k => { cur[k] = MIN_ATTR; });
+  const spendAttrPoint = (cap) => {
+    const g = goals.find(goal => cur[goal.attr] < goal.value && cur[goal.attr] < cap);
+    if (!g) return null;
+    cur[g.attr] += 1;
+    return g.attr;
+  };
+
+  const levels = [];
+  const boughtAt = {};
+  let bank = 0;
+  for (let lvl = 1; lvl <= MAX_LEVEL; lvl++) {
+    const gained = [];
+    const attrPoints = lvl === 1 ? (META.startingPoints ?? 7) : 1;
+    for (let i = 0; i < attrPoints; i++) {
+      const a = spendAttrPoint(lvl === 1 ? STARTING_MAX_ATTR : MAX_ATTR);
+      if (a) gained.push(a);
+    }
+    if (lvl > 1) bank += PERK_POINTS_PER_LEVEL;
+    // Spend on the earliest perkPath perk whose requirement is met; if none is, bank the point.
+    const bought = [];
+    while (bank > 0) {
+      const step = buyable.find(s => boughtAt[s.idx] == null && cur[s.attr] >= s.tier);
+      if (!step) break;
+      bought.push(step);
+      boughtAt[step.idx] = lvl;
+      bank -= 1;
+    }
+    levels.push({
+      level: lvl,
+      attrs: { ...cur },
+      gained,
+      bought,
+      banked: bank,
+      earned: (lvl - 1) * PERK_POINTS_PER_LEVEL,
+      waitingFor: buyable.find(s => boughtAt[s.idx] == null) ?? null,
+      // Points held for path perks still to come; anything beyond that is free to spend now.
+      reserved: Math.min(bank, buyable.filter(s => boughtAt[s.idx] == null).length),
+      surplus: Math.max(0, bank - buyable.filter(s => boughtAt[s.idx] == null).length),
+    });
+  }
+  // When does the perk we're saving for actually unlock?
+  levels.forEach(l => {
+    if (l.waitingFor) {
+      l.unlocksAt = levels.find(x => x.attrs[l.waitingFor.attr] >= l.waitingFor.tier)?.level ?? null;
+    }
+  });
+  return { levels, path, boughtAt };
+}
+
+// Counts repeated attribute gains, e.g. ['tech','tech','body'] -> "+2 TECH // +1 BODY".
+const summarizeGains = (gained) => {
+  const counts = {};
+  gained.forEach(a => { counts[a] = (counts[a] ?? 0) + 1; });
+  return Object.entries(counts).map(([a, n]) => `+${n} ${attrName(a)}`).join(' // ');
+};
+
 // --- Dogtown exclusives (DB.dogtown_exclusives) ---
 const DOGTOWN_EXCLUSIVES = buildDb.dogtown_exclusives ?? [];
 
@@ -140,8 +226,30 @@ export default function App() {
       setRelicPoints(activePreset.stats.relic ?? 9);
       setSkills({ ...DEFAULT_SKILLS, ...(activePreset.skills || {}) });
       setEquippedChrome(defaultChromeFor(activePreset));
+      // Preset stats are the endgame allocation, so show them at max level.
+      setCharLevel(MAX_LEVEL);
     }
   }, [activePresetId, presets]);
+
+  // Per-level attribute/perk plan for the active build (drives tab 05 and tab 01's perk path).
+  const levelPlan = useMemo(() => buildLevelPlan(activePreset), [activePreset]);
+  const planNow = levelPlan.levels[Math.min(MAX_LEVEL, Math.max(1, charLevel)) - 1];
+  const planRowRef = useRef(null);
+  const planListRef = useRef(null);
+
+  // Setting the level on tab 05 snaps every attribute to what the build should have at that level.
+  const applyLevel = (lvl) => {
+    const clamped = Math.min(MAX_LEVEL, Math.max(1, lvl));
+    setCharLevel(clamped);
+    setAttributes({ ...levelPlan.levels[clamped - 1].attrs });
+  };
+
+  useEffect(() => {
+    // Keep the current level's row centered in the plan list without scrolling the page.
+    const list = planListRef.current;
+    const row = planRowRef.current;
+    if (list && row) list.scrollTop = row.offsetTop - list.clientHeight / 2 + row.clientHeight / 2;
+  }, [charLevel, activeTab]);
 
   const showToast = (msg) => {
     setStatusBanner(msg);
@@ -192,7 +300,7 @@ export default function App() {
       });
       setSkills({ ...DEFAULT_SKILLS, ...(activePreset.skills || {}) });
       setEquippedChrome(defaultChromeFor(activePreset));
-      setCharLevel(60);
+      setCharLevel(MAX_LEVEL);
       showToast('BUILD ATTRIBUTES RESET TO PRESET DEFAULTS');
     }
   };
@@ -1182,17 +1290,26 @@ export default function App() {
                       &gt; RECOMMENDED PERK UNLOCK ORDER
                     </span>
                     <span className="text-xs font-bold text-[#fcee0a]">
-                      REACHABLE WITH CURRENT ATTRIBUTES: {activePreset.perkPath.filter(p => attributes[p.attr] >= p.tier).length} / {activePreset.perkPath.length}
+                      ACQUIRED BY LV {charLevel}: {activePreset.perkPath.filter((p, i) => levelPlan.boughtAt[i] <= charLevel && attributes[p.attr] >= p.tier).length} / {activePreset.perkPath.length}
+                      {planNow?.banked > 0 && planNow.waitingFor && (
+                        <span className="text-[#ff2a6d]"> // {planNow.banked} PT BANKED</span>
+                      )}
                     </span>
                   </div>
                   <ol className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {activePreset.perkPath.map((step, i) => {
                       const reachable = attributes[step.attr] >= step.tier;
+                      const plannedLv = levelPlan.boughtAt[i];
+                      const owned = reachable && plannedLv != null && plannedLv <= charLevel;
                       return (
                         <li
                           key={`${step.attr}-${step.perk}-${i}`}
                           className={`flex gap-3 p-2.5 border ${
-                            reachable ? 'border-[#00f0ff]/30 bg-[#00f0ff]/5' : 'border-slate-800 bg-black/30 opacity-60'
+                            owned
+                              ? 'border-[#00f0ff]/40 bg-[#00f0ff]/10'
+                              : reachable
+                                ? 'border-[#fcee0a]/30 bg-[#fcee0a]/5'
+                                : 'border-slate-800 bg-black/30 opacity-60'
                           }`}
                         >
                           <span className="text-sm font-black text-[#fcee0a] w-6 shrink-0 text-right">
@@ -1204,6 +1321,13 @@ export default function App() {
                               <span className={`text-[10px] uppercase font-bold ${ATTR_COLORS[step.attr] ?? 'text-slate-400'}`}>
                                 {attrName(step.attr)} {step.tier}
                               </span>
+                              {plannedLv != null ? (
+                                <span className={`text-[10px] uppercase font-bold ${owned ? 'text-[#00f0ff]' : 'text-slate-400'}`}>
+                                  {owned ? 'ACQUIRED' : 'TAKE'} @ LV {plannedLv}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-500 uppercase">NOT REACHABLE WITH BUILD STATS</span>
+                              )}
                               {!reachable && (
                                 <span className="text-[10px] text-[#ff2a6d] uppercase">
                                   NEEDS {step.tier - attributes[step.attr]} MORE
@@ -1455,9 +1579,9 @@ export default function App() {
               <input
                 type="range"
                 min="1"
-                max="60"
+                max={MAX_LEVEL}
                 value={charLevel}
-                onChange={(e) => setCharLevel(Number(e.target.value))}
+                onChange={(e) => applyLevel(Number(e.target.value))}
                 className="w-full cursor-pointer h-2 bg-slate-800 rounded-lg"
               />
               <div className="flex justify-between text-[10px] text-slate-500 mt-1">
@@ -1466,6 +1590,167 @@ export default function App() {
                 <span>LV. 30 (CYNOSURE / DOGTOWN)</span>
                 <span>LV. 40 (TIER 5 ICONICS)</span>
                 <span>LV. 60 (MAX CALAMITY)</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <button
+                  onClick={() => applyLevel(charLevel - 1)}
+                  disabled={charLevel <= 1}
+                  className="px-2 py-1 border border-slate-700 text-xs font-bold text-slate-300 hover:border-[#00f0ff] hover:text-[#00f0ff] disabled:opacity-30"
+                >
+                  [-] LV
+                </button>
+                <button
+                  onClick={() => applyLevel(charLevel + 1)}
+                  disabled={charLevel >= MAX_LEVEL}
+                  className="px-2 py-1 border border-slate-700 text-xs font-bold text-slate-300 hover:border-[#00f0ff] hover:text-[#00f0ff] disabled:opacity-30"
+                >
+                  [+] LV
+                </button>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  SETTING A LEVEL SNAPS TAB 01 ATTRIBUTES TO THIS BUILD'S PLAN // 1 PERK PT PER LEVEL-UP, SHARD BONUS PTS NOT MODELED
+                </span>
+              </div>
+            </div>
+
+            {/* Snapshot of the plan at the selected level */}
+            {planNow && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                <div className="lg:col-span-7 border border-slate-800 bg-[#0e1118] p-4">
+                  <div className="text-xs font-black text-[#00f0ff] uppercase tracking-wider mb-3">
+                    &gt; LV {planNow.level} // PLANNED ATTRIBUTES
+                  </div>
+                  <div className="grid grid-cols-5 gap-2 text-center">
+                    {ATTR_KEYS.map(k => {
+                      const gainedHere = planNow.gained.filter(a => a === k).length;
+                      return (
+                        <div key={k} className={`border p-2 ${gainedHere ? 'border-[#fcee0a]/50 bg-[#fcee0a]/5' : 'border-slate-800 bg-black/30'}`}>
+                          <div className={`text-[10px] uppercase font-bold truncate ${ATTR_COLORS[k]}`}>{attrName(k)}</div>
+                          <div className="text-xl font-black text-white">{planNow.attrs[k]}</div>
+                          <div className="text-[10px] text-[#fcee0a] h-3">{gainedHere ? `+${gainedHere}` : ''}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-2 uppercase">
+                    {planNow.level === 1 ? 'CHARACTER CREATION' : 'ATTRIBUTE POINT'}: {planNow.gained.length ? summarizeGains(planNow.gained) : 'NONE NEEDED (BUILD STATS COMPLETE)'}
+                  </div>
+                </div>
+
+                <div className="lg:col-span-5 border border-slate-800 bg-[#0e1118] p-4">
+                  <div className="text-xs font-black text-[#00f0ff] uppercase tracking-wider mb-3">
+                    &gt; LV {planNow.level} // PERK ACTION
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                    <div className="border border-slate-800 bg-black/30 p-1.5">
+                      <div className="text-[10px] text-slate-400 uppercase">EARNED</div>
+                      <div className="text-lg font-black text-white">{planNow.earned}</div>
+                    </div>
+                    <div className="border border-slate-800 bg-black/30 p-1.5">
+                      <div className="text-[10px] text-slate-400 uppercase">SPENT</div>
+                      <div className="text-lg font-black text-[#00f0ff]">{planNow.earned - planNow.banked}</div>
+                    </div>
+                    <div className="border border-slate-800 bg-black/30 p-1.5">
+                      <div className="text-[10px] text-slate-400 uppercase">{planNow.waitingFor ? 'BANKED' : 'FREE'}</div>
+                      <div className={`text-lg font-black ${planNow.banked > 0 ? 'text-[#ff2a6d]' : 'text-slate-500'}`}>{planNow.banked}</div>
+                    </div>
+                  </div>
+                  {planNow.bought.length > 0 && (
+                    <ul className="space-y-1 mb-2">
+                      {planNow.bought.map(s => (
+                        <li key={s.idx} className="text-xs">
+                          <span className="text-[#00f0ff] font-bold">TAKE // </span>
+                          <span className="text-white font-bold uppercase">{s.perk}</span>
+                          <span className={`text-[10px] uppercase font-bold ml-2 ${ATTR_COLORS[s.attr]}`}>{attrName(s.attr)} {s.tier}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {planNow.waitingFor ? (
+                    planNow.banked > 0 && (
+                      <div className="space-y-1">
+                        <div className="text-xs text-[#fcee0a]">
+                          STORE {planNow.reserved} PT{planNow.reserved > 1 ? 'S' : ''} // SAVING FOR{' '}
+                          <span className="font-bold uppercase text-white">{planNow.waitingFor.perk}</span>{' '}
+                          ({attrName(planNow.waitingFor.attr)} {planNow.waitingFor.tier}
+                          {planNow.unlocksAt ? `, UNLOCKS LV ${planNow.unlocksAt}` : ''})
+                          {planNow.reserved > 1 && ' + LATER PATH PERKS'}
+                        </div>
+                        {planNow.surplus > 0 && (
+                          <div className="text-xs text-emerald-400">
+                            {planNow.surplus} SURPLUS PT{planNow.surplus > 1 ? 'S' : ''} // SPEND ON EXTRA RANKS OR OFF-PATH PERKS
+                          </div>
+                        )}
+                      </div>
+                    )
+                  ) : (
+                    <div className="text-xs text-emerald-400">
+                      PERK PATH COMPLETE // {planNow.banked} FREE PT{planNow.banked === 1 ? '' : 'S'} FOR EXTRA RANKS OR OFF-PATH PERKS
+                    </div>
+                  )}
+                  {planNow.level === 1 && (
+                    <div className="text-xs text-slate-500">NO PERK POINTS AT LV 1 // FIRST POINT ARRIVES AT LV 2</div>
+                  )}
+                  {planNow.waitingFor && planNow.banked === 0 && planNow.level > 1 && planNow.bought.length > 0 && (
+                    <div className="text-[11px] text-slate-500 mt-1 uppercase">
+                      NEXT: {planNow.waitingFor.perk} ({attrName(planNow.waitingFor.attr)} {planNow.waitingFor.tier})
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Full level-by-level plan (click a row to jump to that level) */}
+            <div className="border border-slate-800 bg-[#0e1118] p-4">
+              <div className="flex flex-wrap justify-between items-center mb-2 gap-2">
+                <span className="text-xs font-black text-[#00f0ff] uppercase tracking-wider">
+                  &gt; LEVEL-BY-LEVEL PLAN // {activePreset?.name}
+                </span>
+                <span className="text-[10px] text-slate-500 uppercase">CLICK A ROW TO JUMP TO THAT LEVEL</span>
+              </div>
+              <div ref={planListRef} className="relative max-h-80 overflow-y-auto border border-slate-800">
+                <table className="w-full text-xs">
+                  <thead className="sticky top-0 bg-[#090b10] text-[10px] text-slate-400 uppercase">
+                    <tr>
+                      <th className="text-left p-2 w-12">LV</th>
+                      <th className="text-left p-2">ATTRIBUTE</th>
+                      <th className="text-left p-2">PERK</th>
+                      <th className="text-right p-2 w-16">BANK</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {levelPlan.levels.map(l => {
+                      const isCurrent = l.level === charLevel;
+                      return (
+                        <tr
+                          key={l.level}
+                          ref={isCurrent ? planRowRef : null}
+                          onClick={() => applyLevel(l.level)}
+                          className={`cursor-pointer border-t border-slate-800/60 ${
+                            isCurrent ? 'bg-[#00f0ff]/10' : l.level < charLevel ? 'opacity-60 hover:bg-white/5' : 'hover:bg-white/5'
+                          }`}
+                        >
+                          <td className={`p-2 font-black ${isCurrent ? 'text-[#00f0ff]' : 'text-[#fcee0a]'}`}>{l.level}</td>
+                          <td className="p-2 text-slate-300 uppercase">{l.gained.length ? summarizeGains(l.gained) : '-'}</td>
+                          <td className="p-2 uppercase">
+                            {l.bought.length > 0 ? (
+                              <span className="text-white font-bold">{l.bought.map(s => s.perk).join(' + ')}</span>
+                            ) : l.level === 1 ? (
+                              <span className="text-slate-500">-</span>
+                            ) : l.waitingFor ? (
+                              <span className="text-[#fcee0a]">
+                                STORE // SAVING FOR {l.waitingFor.perk}
+                                {l.surplus > 0 && <span className="text-emerald-400"> ({l.surplus} SURPLUS)</span>}
+                              </span>
+                            ) : (
+                              <span className="text-emerald-400">FREE PT</span>
+                            )}
+                          </td>
+                          <td className={`p-2 text-right font-bold ${l.banked > 0 ? 'text-[#ff2a6d]' : 'text-slate-600'}`}>{l.banked}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
 
