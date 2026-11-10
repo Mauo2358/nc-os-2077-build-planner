@@ -1009,10 +1009,16 @@ export default function App() {
 
             <div className="lg:col-span-5 grid grid-cols-3 gap-2 text-center">
               <div className="bg-[#090b10] border border-slate-800 p-2">
-                <div className="text-[10px] text-slate-400 uppercase">ATTR POOL</div>
-                <div className="text-lg font-black text-[#fcee0a]">
-                  {spentPoints} <span className="text-xs text-slate-500">/ {maxTotalPoints}</span>
+                <div className="text-[10px] text-slate-400 uppercase">ATTR POOL // LV {MAX_LEVEL}</div>
+                <div className={`text-lg font-black ${spentPoints > MAX_POINTS ? 'text-[#ff2a6d]' : 'text-[#fcee0a]'}`}>
+                  {spentPoints} <span className="text-xs text-slate-500">/ {MAX_POINTS}</span>
                 </div>
+                {charLevel < MAX_LEVEL && (
+                  <div className={`text-[9px] uppercase ${spentPoints > maxTotalPoints ? 'text-[#ff2a6d]' : 'text-slate-500'}`}>
+                    SIM LV {charLevel}: {maxTotalPoints} PTS
+                    {spentPoints > maxTotalPoints && ` // +${spentPoints - maxTotalPoints} OVER`}
+                  </div>
+                )}
               </div>
               <div className="bg-[#090b10] border border-slate-800 p-2">
                 <div className="text-[10px] text-slate-400 uppercase">PERK PTS</div>
@@ -1441,8 +1447,9 @@ export default function App() {
                 <span className="text-xs font-black text-[#00f0ff] uppercase tracking-wider">
                   &gt; SIMULATE CHARACTER LEVEL PROGRESSION: LEVEL {charLevel}
                 </span>
-                <span className="text-xs font-bold text-[#fcee0a]">
+                <span className={`text-xs font-bold ${spentPoints > maxTotalPoints ? 'text-[#ff2a6d]' : 'text-[#fcee0a]'}`}>
                   AVAILABLE ATTR PTS: {maxTotalPoints}
+                  {spentPoints > maxTotalPoints && ` // BUILD NEEDS LV ${Math.min(MAX_LEVEL, spentPoints - pointsAtLevel(1) + 1)}`}
                 </span>
               </div>
               <input
